@@ -5,20 +5,11 @@ const api = {
   role: '/role',
   service: '/service',
   permission: '/permission',
-  PermissionTree: '/permissions/tree',
   permissionNoPager: '/permission/no-pager',
   orgTree: '/org/tree'
 }
 
 export default api
-
-export function getPermissionTree(parameter) {
-  return request({
-    url: api.PermissionTree,
-    method: 'get',
-    params: parameter
-  })
-}
 
 export function getUserList(parameter) {
   return request({
