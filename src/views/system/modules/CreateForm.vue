@@ -19,6 +19,7 @@
         <a-form-item label="菜单类型">
           <a-radio-group
             name="radioGroup"
+            @change="onMenuTypeChange"
             v-decorator="['type', { rules: [{ required: true, message: '请选择菜单类型' }] }]"
           >
             <a-radio :value="0"> 目录 </a-radio>
@@ -27,23 +28,48 @@
           </a-radio-group>
         </a-form-item>
         <a-form-item label="上级菜单">
-          <a-tree show-line :default-expanded-keys="['0-0-0']" @select="onSelect">
-            <a-icon slot="switcherIcon" type="down" />
-            <a-tree-node key="0-0" title="parent 1">
-              <a-tree-node key="0-0-0" title="parent 1-0">
-                <a-tree-node key="0-0-0-0" title="leaf" />
-                <a-tree-node key="0-0-0-1" title="leaf" />
-                <a-tree-node key="0-0-0-2" title="leaf" />
-              </a-tree-node>
-              <a-tree-node key="0-0-1" title="parent 1-1">
-                <a-tree-node key="0-0-1-0" title="leaf" />
-              </a-tree-node>
-              <a-tree-node key="0-0-2" title="parent 1-2">
-                <a-tree-node key="0-0-2-0" title="leaf" />
-                <a-tree-node key="0-0-2-1" title="leaf" />
-              </a-tree-node>
-            </a-tree-node>
-          </a-tree>
+          <a-tree-select
+            show-search
+            treeNodeFilterProp="title"
+            @select="onParentMenuSelect"
+            :tree-data="permissionsTree"
+            :replace-fields="replaceFields"
+            tree-default-expand-all
+            v-decorator="[
+              'parentId',
+              { initialValue: defaultPermission },
+              { rules: [{ required: true, message: '请选择上级菜单' }] }
+            ]"
+          >
+          </a-tree-select>
+        </a-form-item>
+        <a-form-item v-if="showPath">
+          <span slot="label">
+            路由地址&nbsp;
+            <a-tooltip title="您要去往何方?">
+              <a-icon type="question-circle-o" />
+            </a-tooltip>
+          </span>
+          <a-input v-decorator="['path']" />
+        </a-form-item>
+        <a-form-item v-if="showComponet">
+          <span slot="label">
+            前端组件&nbsp;
+            <a-tooltip title="前端组件的名称">
+              <a-icon type="question-circle-o" />
+            </a-tooltip>
+          </span>
+          <a-input v-decorator="['component']" />
+        </a-form-item>
+        <a-form-item v-if="showSortValue" label="显示排序">
+          <a-input-number v-decorator="['sortValue', { initialValue: 0 }]" :min="0" :max="9999" />
+        </a-form-item>
+        <a-form-item label="图标">
+          <icon-picker
+            placeholder="请选择一个图标"
+            v-bind="iconOptions"
+            v-decorator="['icon', { initialValue: null }]"
+          ></icon-picker>
         </a-form-item>
       </a-form>
     </a-spin>
@@ -52,11 +78,25 @@
 
 <script>
 import pick from 'lodash.pick'
+import { getPermissionTree } from '@/api/manage'
+import IconPicker from '@/components/IconPicker'
 
 // 表单字段
-const fields = ['description', 'id']
+const fields = ['id', 'name', 'type', 'parentId', 'path', 'component', 'sortValue', 'icon']
+
+const ROOT_MENU = {
+  id: 0,
+  parentId: 0,
+  name: '主目录'
+}
+
+const FILTER_MENU = 'FILTER_MENU'
+const FILTER_CATALOG = 'FILTER_CATALOG'
 
 export default {
+  components: {
+    IconPicker
+  },
   props: {
     visible: {
       type: Boolean,
@@ -83,23 +123,75 @@ export default {
       }
     }
     return {
+      filter: FILTER_CATALOG,
+      permissionsTree: null,
+      // Tree 组件和后端字段的映射替换
+      replaceFields: {
+        title: 'name',
+        key: 'id',
+        value: 'id'
+      },
+      // 默认值选中上级菜单 value
+      defaultPermission: ['0'],
+      // 图标选择器默认 Tab
+      currentSelectedIcon: 'pause-circle',
+      // 图标选择器配置项
+      iconOptions: {
+        disabled: false,
+        allowClear: true
+      },
+      showPath: false,
+      showComponet: true,
+      showSortValue: true,
       form: this.$form.createForm(this)
     }
   },
   created() {
-    console.log('custom modal created')
-
+    this.fetchPermissionTree()
     // 防止表单未注册
     fields.forEach((v) => this.form.getFieldDecorator(v))
-
     // 当 model 发生改变时，为表单设置值
     this.$watch('model', () => {
       this.model && this.form.setFieldsValue(pick(this.model, fields))
     })
   },
   methods: {
-    onSelect(selectedKeys, info) {
+    onParentMenuSelect(selectedKeys, info) {
       console.log('selected', selectedKeys, info)
+    },
+    fetchPermissionTree() {
+      getPermissionTree({ filter: this.filter })
+        .then((res) => {
+          this.permissionsTree = res.data
+          this.permissionsTree.unshift(ROOT_MENU)
+        })
+        .catch((err) => {
+          this.$message.error('获取菜单树列表失败')
+          console.log(err)
+        })
+    },
+    onMenuTypeChange(event) {
+      const value = event.target.value
+      if (value === 0) {
+        // 目录
+        this.showPath = false
+        this.showComponet = true
+        this.form.setFieldsValue({ component: 'RouteView' })
+        this.filter = FILTER_CATALOG
+      } else if (value === 1) {
+        // 菜单
+        this.showPath = true
+        this.showComponet = true
+        this.form.resetFields('component')
+        this.filter = FILTER_CATALOG
+      } else if (value === 2) {
+        // 按钮
+        this.showPath = false
+        this.showComponet = false
+        this.showSortValue = false
+        this.filter = FILTER_MENU
+      }
+      this.fetchPermissionTree()
     }
   }
 }
