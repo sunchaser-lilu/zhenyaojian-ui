@@ -45,7 +45,7 @@
         </a-form-item>
         <a-form-item v-if="showPath">
           <span slot="label">
-            路由地址&nbsp;
+            路由地址
             <a-tooltip title="您要去往何方?">
               <a-icon type="question-circle-o" />
             </a-tooltip>
@@ -54,14 +54,20 @@
         </a-form-item>
         <a-form-item v-if="showComponet">
           <span slot="label">
-            前端组件&nbsp;
-            <a-tooltip title="前端组件的名称">
+            前端组件
+            <a-tooltip title="前端页面组件的名称">
               <a-icon type="question-circle-o" />
             </a-tooltip>
           </span>
-          <a-input v-decorator="['component']" />
+          <a-input v-decorator="['component']" :disabled="componentDisabled" />
         </a-form-item>
-        <a-form-item v-if="showSortValue" label="显示排序">
+        <a-form-item v-if="showSortValue">
+          <span slot="label">
+            显示排序
+            <a-tooltip title="数值越小越靠前~">
+              <a-icon type="question-circle-o" />
+            </a-tooltip>
+          </span>
           <a-input-number v-decorator="['sortValue', { initialValue: 0 }]" :min="0" :max="9999" />
         </a-form-item>
         <a-form-item label="图标">
@@ -78,7 +84,7 @@
 
 <script>
 import pick from 'lodash.pick'
-import { getPermissionTree } from '@/api/manage'
+import { getPermissionTree } from '@/api/menu'
 import IconPicker from '@/components/IconPicker'
 
 // 表单字段
@@ -143,6 +149,7 @@ export default {
       showPath: false,
       showComponet: true,
       showSortValue: true,
+      componentDisabled: false,
       form: this.$form.createForm(this)
     }
   },
@@ -163,6 +170,7 @@ export default {
       getPermissionTree({ filter: this.filter })
         .then((res) => {
           this.permissionsTree = res.data
+          // 插入到数组开头
           this.permissionsTree.unshift(ROOT_MENU)
         })
         .catch((err) => {
@@ -172,17 +180,20 @@ export default {
     },
     onMenuTypeChange(event) {
       const value = event.target.value
+      console.log(value)
       if (value === 0) {
         // 目录
         this.showPath = false
         this.showComponet = true
-        this.form.setFieldsValue({ component: 'RouteView' })
+        this.form.getFieldDecorator('component', { initialValue: 'RouteView' })
+        this.componentDisabled = true
         this.filter = FILTER_CATALOG
       } else if (value === 1) {
         // 菜单
         this.showPath = true
         this.showComponet = true
-        this.form.resetFields('component')
+        this.componentDisabled = false
+        this.form.getFieldDecorator('component', { initialValue: '' })
         this.filter = FILTER_CATALOG
       } else if (value === 2) {
         // 按钮
