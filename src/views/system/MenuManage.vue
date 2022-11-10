@@ -78,6 +78,7 @@
 import moment from 'moment'
 import { STable, Ellipsis } from '@/components'
 import { getRoleList, getServiceList } from '@/api/manage'
+import { createPermission } from '@/api/menu'
 
 // import StepByStepModal from './modules/StepByStepModal'
 import CreateForm from './modules/CreateForm'
@@ -223,20 +224,21 @@ export default {
             })
           } else {
             // 新增
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                resolve()
-              }, 1000)
-            }).then((res) => {
-              this.visible = false
-              this.confirmLoading = false
-              // 重置表单数据
-              form.resetFields()
-              // 刷新表格
-              this.$refs.table.refresh()
-
-              this.$message.info('新增成功')
-            })
+            createPermission(values)
+              .then((res) => {
+                console.log(res)
+                this.visible = false
+                this.confirmLoading = false
+                // 重置表单数据
+                form.resetFields()
+                // 刷新表格
+                this.$refs.table.refresh()
+                this.$message.info('新增成功')
+              })
+              .catch((err) => {
+                console.log(err)
+                this.$message.error('新增菜单失败')
+              })
           }
         } else {
           this.confirmLoading = false
