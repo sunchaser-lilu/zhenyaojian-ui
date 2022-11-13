@@ -12,7 +12,7 @@
             </a-col>
             <a-col :md="8" :sm="24">
               <span class="table-page-search-submitButtons">
-                <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
+                <a-button type="primary" @click="fetchPermissionList()">查询</a-button>
                 <a-button style="margin-left: 8px" @click="() => (this.queryParam = {})">重置</a-button>
               </span>
             </a-col>
@@ -21,7 +21,7 @@
       </div>
 
       <div class="table-operator">
-        <a-button type="primary" icon="plus" @click="handleAdd">新建</a-button>
+        <a-button type="primary" icon="plus" @click="handleAdd()">新建</a-button>
         <a-dropdown v-action:edit v-if="selectedRowKeys.length > 0">
           <a-menu slot="overlay">
             <a-menu-item key="1"><a-icon type="delete" />删除</a-menu-item>
@@ -32,122 +32,94 @@
         </a-dropdown>
       </div>
 
-      <s-table
+      <a-table
         ref="table"
         size="default"
-        rowKey="key"
+        rowKey="id"
         :columns="columns"
-        :data="loadData"
-        :alert="true"
+        :data-source="data"
         :rowSelection="rowSelection"
-        showPagination="auto"
+        :pagination="false"
+        bordered
+        :loading="loading"
+        :expandIcon="expandIcon"
       >
-        <span slot="serial" slot-scope="text, record, index">
-          {{ index + 1 }}
+        <!-- :expandIcon="expandIcon" -->
+        <span slot="name" slot-scope="text, record">
+          <a-icon :type="record.icon" />&nbsp;
+          {{ text }}
         </span>
-        <span slot="status" slot-scope="text">
-          <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
-        </span>
-        <span slot="description" slot-scope="text">
-          <ellipsis :length="4" tooltip>{{ text }}</ellipsis>
-        </span>
-
         <span slot="action" slot-scope="text, record">
           <template>
-            <a @click="handleEdit(record)">配置</a>
-            <a-divider type="vertical" />
-            <a @click="handleSub(record)">订阅报警</a>
+            <a-tag color="cyan" @click="handleAdd(record)"> 添加 </a-tag>
+            <a-tag color="orange" @click="handleEdit(record)"> 修改 </a-tag>
+            <a-popconfirm
+              title="确认删除该条记录吗?"
+              ok-text="确认"
+              cancel-text="取消"
+              @confirm="handleDelConfirm(record)"
+              @cancel="handleDelCancel(record)"
+            >
+              <a-tag style="margin-right: 0" color="red"> 删除 </a-tag>
+            </a-popconfirm>
           </template>
         </span>
-      </s-table>
+      </a-table>
 
       <create-form
         ref="createModal"
         :visible="visible"
         :loading="confirmLoading"
         :model="mdl"
+        :onlyBtnType="onlyBtnType"
+        :addFlag="addFlag"
+        :updateFlag="updateFlag"
         @cancel="handleCancel"
         @ok="handleOk"
       />
-      <step-by-step-modal ref="modal" @ok="handleOk" />
     </a-card>
   </page-header-wrapper>
 </template>
 
 <script>
-import moment from 'moment'
-import { STable, Ellipsis } from '@/components'
-import { getRoleList, getServiceList } from '@/api/manage'
-import { createPermission } from '@/api/menu'
-
-// import StepByStepModal from './modules/StepByStepModal'
+import { createPermission, updatePermission, deletePermission, getPermissionList } from '@/api/menu'
 import CreateForm from './modules/CreateForm'
 
 const columns = [
   {
-    title: '#',
-    scopedSlots: { customRender: 'serial' }
+    title: '菜单名称',
+    dataIndex: 'name',
+    scopedSlots: { customRender: 'name' }
   },
   {
-    title: '规则编号',
-    dataIndex: 'no'
+    title: '路由地址',
+    dataIndex: 'path'
   },
   {
-    title: '描述',
-    dataIndex: 'description',
-    scopedSlots: { customRender: 'description' }
+    title: '前端组件',
+    dataIndex: 'component'
   },
   {
-    title: '服务调用次数',
-    dataIndex: 'callNo',
-    sorter: true,
-    needTotal: true,
-    customRender: (text) => text + ' 次'
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    scopedSlots: { customRender: 'status' }
+    title: '排序',
+    dataIndex: 'sortValue'
   },
   {
     title: '更新时间',
-    dataIndex: 'updatedAt',
-    sorter: true
+    dataIndex: 'updateTime'
   },
   {
     title: '操作',
     dataIndex: 'action',
-    width: '150px',
+    fixed: 'right',
+    width: 180,
     scopedSlots: { customRender: 'action' }
   }
 ]
 
-const statusMap = {
-  0: {
-    status: 'default',
-    text: '关闭'
-  },
-  1: {
-    status: 'processing',
-    text: '运行中'
-  },
-  2: {
-    status: 'success',
-    text: '已上线'
-  },
-  3: {
-    status: 'error',
-    text: '异常'
-  }
-}
-
 export default {
-  name: 'TableList',
+  name: 'MenuManage',
   components: {
-    STable,
-    Ellipsis,
     CreateForm
-    // StepByStepModal
   },
   data() {
     this.columns = columns
@@ -156,32 +128,22 @@ export default {
       visible: false,
       confirmLoading: false,
       mdl: null,
-      // 高级搜索 展开/关闭
-      // advanced: false,
       // 查询参数
       queryParam: {},
-      // 加载数据方法 必须为 Promise 对象
-      loadData: (parameter) => {
-        const requestParameters = Object.assign({}, parameter, this.queryParam)
-        console.log('loadData request parameters:', requestParameters)
-        return getServiceList(requestParameters).then((res) => {
-          return res.result
-        })
-      },
+      // create form 联动
+      onlyBtnType: false,
+      addFlag: false,
+      updateFlag: false,
+      // 表格数据
+      data: null,
+      // 表格加载
+      loading: false,
       selectedRowKeys: [],
       selectedRows: []
     }
   },
-  filters: {
-    statusFilter(type) {
-      return statusMap[type].text
-    },
-    statusTypeFilter(type) {
-      return statusMap[type].status
-    }
-  },
   created() {
-    getRoleList({ t: new Date() })
+    this.fetchPermissionList()
   },
   computed: {
     rowSelection() {
@@ -192,48 +154,70 @@ export default {
     }
   },
   methods: {
-    handleAdd() {
-      this.mdl = null
+    fetchPermissionList(parameter) {
+      this.loading = true
+      const requestParameters = Object.assign({}, parameter, this.queryParam)
+      getPermissionList(requestParameters)
+        .then((res) => {
+          console.log(res)
+          this.data = res.data
+        })
+        .catch((err) => {
+          this.$message.error('查询菜单列表失败')
+          console.log(err)
+        })
+        .finally(() => {
+          this.loading = false
+        })
+    },
+    handleAdd(record) {
       this.visible = true
+      this.mdl = {
+        // 菜单下只能添加按钮
+        type: record && record.type === 1 ? 2 : undefined,
+        // 默认选择父级菜单
+        parentId: record ? record.id : '0'
+      }
+      this.addFlag = !this.addFlag
+      this.onlyBtnType = record && record.type === 1
     },
     handleEdit(record) {
       this.visible = true
       this.mdl = { ...record }
+      this.updateFlag = !this.updateFlag
     },
     handleOk() {
       const form = this.$refs.createModal.form
       this.confirmLoading = true
       form.validateFields((errors, values) => {
         if (!errors) {
-          console.log('values', values)
           if (values.id > 0) {
             // 修改 e.g.
-            new Promise((resolve, reject) => {
-              setTimeout(() => {
-                resolve()
-              }, 1000)
-            }).then((res) => {
-              this.visible = false
-              this.confirmLoading = false
-              // 重置表单数据
-              form.resetFields()
-              // 刷新表格
-              this.$refs.table.refresh()
-
-              this.$message.info('修改成功')
-            })
-          } else {
-            // 新增
-            createPermission(values)
-              .then((res) => {
-                console.log(res)
+            updatePermission(values)
+              .then(() => {
                 this.visible = false
                 this.confirmLoading = false
                 // 重置表单数据
                 form.resetFields()
                 // 刷新表格
-                this.$refs.table.refresh()
-                this.$message.info('新增成功')
+                this.fetchPermissionList()
+                this.$message.success('修改成功')
+              })
+              .catch((err) => {
+                console.log(err)
+                this.$message.error('修改失败')
+              })
+          } else {
+            // 新增
+            createPermission(values)
+              .then(() => {
+                this.visible = false
+                this.confirmLoading = false
+                // 重置表单数据
+                form.resetFields()
+                // 刷新表格
+                this.fetchPermissionList()
+                this.$message.success('新增成功')
               })
               .catch((err) => {
                 console.log(err)
@@ -247,27 +231,56 @@ export default {
     },
     handleCancel() {
       this.visible = false
-
       const form = this.$refs.createModal.form
       form.resetFields() // 清理表单数据（可不做）
     },
-    handleSub(record) {
-      if (record.status !== 0) {
-        this.$message.info(`${record.no} 订阅成功`)
-      } else {
-        this.$message.error(`${record.no} 订阅失败，规则已关闭`)
-      }
+    handleDelConfirm(record) {
+      deletePermission(record.id)
+        .then(() => {
+          // 刷新表格
+          this.fetchPermissionList()
+          this.$message.success('删除成功')
+        })
+        .catch((err) => {
+          console.log(err)
+          this.$message.error('删除菜单失败')
+        })
+    },
+    handleDelCancel() {
+      this.$message.info('操作取消')
     },
     onSelectChange(selectedRowKeys, selectedRows) {
       this.selectedRowKeys = selectedRowKeys
       this.selectedRows = selectedRows
     },
-    // toggleAdvanced () {
-    //   this.advanced = !this.advanced
-    // },
-    resetSearchForm() {
-      this.queryParam = {
-        date: moment(new Date())
+    // table 自定义展开图标
+    expandIcon(props) {
+      const children = props.record.children
+      if (!children || children.length <= 0) {
+        return <span class="ant-table-row-expand-icon ant-table-row-spaced" />
+      }
+      if (props.expanded) {
+        return (
+          <span
+            onClick={(e) => {
+              props.onExpand(props.record, e)
+            }}
+          >
+            <a-icon type="down" />
+            &nbsp;&nbsp;
+          </span>
+        )
+      } else {
+        return (
+          <span
+            onClick={(e) => {
+              props.onExpand(props.record, e)
+            }}
+          >
+            <a-icon type="right" />
+            &nbsp;&nbsp;
+          </span>
+        )
       }
     }
   }
