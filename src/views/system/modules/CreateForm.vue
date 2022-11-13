@@ -22,8 +22,8 @@
             @change="onMenuTypeChange"
             v-decorator="['type', { rules: [{ required: true, message: '请选择菜单类型' }] }]"
           >
-            <a-radio :value="0"> 目录 </a-radio>
-            <a-radio :value="1"> 菜单 </a-radio>
+            <a-radio :value="0" :disabled="catalogRadioDisabled"> 目录 </a-radio>
+            <a-radio :value="1" :disabled="menuRadioDisabled"> 菜单 </a-radio>
             <a-radio :value="2"> 按钮 </a-radio>
           </a-radio-group>
         </a-form-item>
@@ -37,13 +37,13 @@
             tree-default-expand-all
             v-decorator="[
               'parentId',
-              { initialValue: defaultPermission },
+              { initialValue: ['0'] },
               { rules: [{ required: true, message: '请选择上级菜单' }] }
             ]"
           >
           </a-tree-select>
         </a-form-item>
-        <a-form-item v-if="showPath">
+        <a-form-item v-show="showPath">
           <span slot="label">
             路由地址
             <a-tooltip title="您要去往何方?">
@@ -52,7 +52,7 @@
           </span>
           <a-input v-decorator="['path']" />
         </a-form-item>
-        <a-form-item v-if="showComponet">
+        <a-form-item v-show="showComponet">
           <span slot="label">
             前端组件
             <a-tooltip title="前端页面组件的名称">
@@ -61,7 +61,7 @@
           </span>
           <a-input v-decorator="['component']" :disabled="componentDisabled" />
         </a-form-item>
-        <a-form-item v-if="showSortValue">
+        <a-form-item v-show="showSortValue">
           <span slot="label">
             显示排序
             <a-tooltip title="数值越小越靠前~">
@@ -115,6 +115,18 @@ export default {
     model: {
       type: Object,
       default: () => null
+    },
+    onlyBtnType: {
+      type: Boolean,
+      default: () => false
+    },
+    addFlag: {
+      type: Boolean,
+      default: () => false
+    },
+    updateFlag: {
+      type: Boolean,
+      default: () => false
     }
   },
   data() {
@@ -137,8 +149,6 @@ export default {
         key: 'id',
         value: 'id'
       },
-      // 默认值选中上级菜单 value
-      defaultPermission: ['0'],
       // 图标选择器默认 Tab
       currentSelectedIcon: 'pause-circle',
       // 图标选择器配置项
@@ -150,6 +160,8 @@ export default {
       showComponet: true,
       showSortValue: true,
       componentDisabled: false,
+      catalogRadioDisabled: false,
+      menuRadioDisabled: false,
       form: this.$form.createForm(this)
     }
   },
@@ -157,12 +169,50 @@ export default {
     this.fetchPermissionTree()
     // 防止表单未注册
     fields.forEach((v) => this.form.getFieldDecorator(v))
+    /**
+     * 目录下添加子菜单：可添加任意类型菜单
+     * 菜单下添加子菜单：只可添加按钮（禁用目录和菜单 Radio）
+     * 按钮无添加子菜单按钮
+     */
+    this.$watch('addFlag', () => {
+      console.log('addFlag')
+      console.log(this.model)
+      if (this.onlyBtnType) {
+        this.catalogRadioDisabled = true
+        this.menuRadioDisabled = true
+        this.form.setFieldsValue({ type: 2 })
+        this.onMenuTypeChange({ target: { value: 2 } })
+      } else {
+        this.initFormStatus()
+      }
+    })
+    this.$watch('updateFlag', () => {
+      console.log('updateFlag')
+      console.log(this.model)
+      this.catalogRadioDisabled = false
+      this.menuRadioDisabled = false
+      this.showPath = this.model.type === 1
+      this.showComponet = true
+      this.showSortValue = true
+      this.componentDisabled = this.model.type === 0
+    })
     // 当 model 发生改变时，为表单设置值
     this.$watch('model', () => {
+      console.log('model')
+      console.log(this.model)
       this.model && this.form.setFieldsValue(pick(this.model, fields))
     })
   },
   methods: {
+    initFormStatus() {
+      this.catalogRadioDisabled = false
+      this.menuRadioDisabled = false
+      this.showPath = false
+      this.showComponet = true
+      this.showSortValue = true
+      this.componentDisabled = false
+      this.form.getFieldDecorator('component', { initialValue: '' })
+    },
     onParentMenuSelect(selectedKeys, info) {
       console.log('selected', selectedKeys, info)
     },
@@ -182,16 +232,21 @@ export default {
       const value = event.target.value
       console.log(value)
       if (value === 0) {
-        // 目录
+        console.log(this.model)
+        // 切换到目录
         this.showPath = false
         this.showComponet = true
-        this.form.getFieldDecorator('component', { initialValue: 'RouteView' })
+        this.showSortValue = true
         this.componentDisabled = true
+        this.form.getFieldDecorator('component', { initialValue: 'RouteView' })
+        this.catalogRadioDisabled = false
+        this.menuRadioDisabled = false
         this.filter = FILTER_CATALOG
       } else if (value === 1) {
-        // 菜单
+        // 切换到菜单
         this.showPath = true
         this.showComponet = true
+        this.showSortValue = true
         this.componentDisabled = false
         this.form.getFieldDecorator('component', { initialValue: '' })
         this.filter = FILTER_CATALOG
