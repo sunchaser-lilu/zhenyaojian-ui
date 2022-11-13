@@ -68,7 +68,6 @@ const notFoundRouter = {
 // 根级菜单
 const rootRouter = {
   key: '',
-  name: 'index',
   path: '/',
   component: 'BasicLayout',
   meta: {
@@ -107,7 +106,11 @@ export const generatorDynamicRouter = () => {
 
 export const configureComponent = (data) => {
   const { component, children } = data
-  if (component) {
+  if (component === '') {
+    data.component = undefined
+    data.meta.target = '_blank'
+  }
+  if (component && component !== '') {
     data.name = component
     data.component = constantRouterComponents[component]
   }
@@ -116,6 +119,9 @@ export const configureComponent = (data) => {
     data.children = children.map(item => {
       return configureComponent(item)
     })
+    // vue-router.esm.js?3423:16 [vue-router] Named Route 'BasicLayout' has a default child route. When navigating to this named route (:to="{name: 'BasicLayout'}"), the default child route will not be rendered. Remove the name from this route and use the name of the default child route for named links instead.
+    // 当存在 children 路由时，父级路由需要一个默认的路由，此时不能给父级路由设置 name
+    data.name = undefined
   }
   return data
 }
