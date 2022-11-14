@@ -22,14 +22,6 @@
 
       <div class="table-operator">
         <a-button type="primary" icon="plus" @click="handleAdd()">新建</a-button>
-        <a-dropdown v-action:edit v-if="selectedRowKeys.length > 0">
-          <a-menu slot="overlay">
-            <a-menu-item key="1"><a-icon type="delete" />删除</a-menu-item>
-            <!-- lock | unlock -->
-            <a-menu-item key="2"><a-icon type="lock" />锁定</a-menu-item>
-          </a-menu>
-          <a-button style="margin-left: 8px"> 批量操作 <a-icon type="down" /> </a-button>
-        </a-dropdown>
       </div>
 
       <a-table
@@ -38,7 +30,6 @@
         rowKey="id"
         :columns="columns"
         :data-source="data"
-        :rowSelection="rowSelection"
         :pagination="false"
         bordered
         :loading="loading"
@@ -137,21 +128,11 @@ export default {
       // 表格数据
       data: null,
       // 表格加载
-      loading: false,
-      selectedRowKeys: [],
-      selectedRows: []
+      loading: false
     }
   },
   created() {
     this.fetchPermissionList()
-  },
-  computed: {
-    rowSelection() {
-      return {
-        selectedRowKeys: this.selectedRowKeys,
-        onChange: this.onSelectChange
-      }
-    }
   },
   methods: {
     fetchPermissionList(parameter) {
@@ -159,12 +140,7 @@ export default {
       const requestParameters = Object.assign({}, parameter, this.queryParam)
       getPermissionList(requestParameters)
         .then((res) => {
-          console.log(res)
           this.data = res.data
-        })
-        .catch((err) => {
-          this.$message.error('查询菜单列表失败')
-          console.log(err)
         })
         .finally(() => {
           this.loading = false
@@ -203,9 +179,9 @@ export default {
                 this.fetchPermissionList()
                 this.$message.success('修改成功')
               })
-              .catch((err) => {
-                console.log(err)
-                this.$message.error('修改失败')
+              .finally(() => {
+                this.confirmLoading = false
+                this.$refs.createModal.fetchPermissionTree()
               })
           } else {
             // 新增
@@ -219,9 +195,9 @@ export default {
                 this.fetchPermissionList()
                 this.$message.success('新增成功')
               })
-              .catch((err) => {
-                console.log(err)
-                this.$message.error('新增菜单失败')
+              .finally(() => {
+                this.confirmLoading = false
+                this.$refs.createModal.fetchPermissionTree()
               })
           }
         } else {
@@ -235,23 +211,14 @@ export default {
       form.resetFields() // 清理表单数据（可不做）
     },
     handleDelConfirm(record) {
-      deletePermission(record.id)
-        .then(() => {
-          // 刷新表格
-          this.fetchPermissionList()
-          this.$message.success('删除成功')
-        })
-        .catch((err) => {
-          console.log(err)
-          this.$message.error('删除菜单失败')
-        })
+      deletePermission(record.id).then(() => {
+        // 刷新表格
+        this.fetchPermissionList()
+        this.$message.success('删除成功')
+      })
     },
     handleDelCancel() {
       this.$message.info('操作取消')
-    },
-    onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys
-      this.selectedRows = selectedRows
     },
     // table 自定义展开图标
     expandIcon(props) {
