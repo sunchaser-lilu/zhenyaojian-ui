@@ -175,8 +175,6 @@ export default {
      * 按钮无添加子菜单按钮
      */
     this.$watch('addFlag', () => {
-      console.log('addFlag')
-      console.log(this.model)
       if (this.onlyBtnType) {
         this.catalogRadioDisabled = true
         this.menuRadioDisabled = true
@@ -187,8 +185,6 @@ export default {
       }
     })
     this.$watch('updateFlag', () => {
-      console.log('updateFlag')
-      console.log(this.model)
       this.catalogRadioDisabled = false
       this.menuRadioDisabled = false
       this.showPath = this.model.type === 1
@@ -198,8 +194,6 @@ export default {
     })
     // 当 model 发生改变时，为表单设置值
     this.$watch('model', () => {
-      console.log('model')
-      console.log(this.model)
       this.model && this.form.setFieldsValue(pick(this.model, fields))
     })
   },
@@ -217,20 +211,14 @@ export default {
       console.log('selected', selectedKeys, info)
     },
     fetchPermissionTree() {
-      getPermissionTree({ filter: this.filter })
-        .then((res) => {
-          this.permissionsTree = res.data
-          // 插入到数组开头
-          this.permissionsTree.unshift(ROOT_MENU)
-        })
-        .catch((err) => {
-          this.$message.error('获取菜单树列表失败')
-          console.log(err)
-        })
+      getPermissionTree({ filter: this.filter }).then((res) => {
+        this.permissionsTree = res.data
+        // 插入到数组开头
+        this.permissionsTree.unshift(ROOT_MENU)
+      })
     },
     onMenuTypeChange(event) {
       const value = event.target.value
-      console.log(value)
       if (value === 0) {
         console.log(this.model)
         // 切换到目录
