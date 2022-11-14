@@ -2,6 +2,7 @@ import axios from 'axios'
 import store from '@/store'
 import storage from 'store'
 import notification from 'ant-design-vue/es/notification'
+import message from 'ant-design-vue/es/message'
 import { VueAxios } from './axios'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
 
@@ -25,21 +26,23 @@ const errorHandler = (error) => {
         message: 'Forbidden',
         description: data.msg
       })
-    }
-    if (status === 401 && data.code !== '20002') {
+    } else if (status === 401 && data.code !== '20002') {
       notification.error({
         message: 'Unauthorized',
         description: 'Authorization verification failed'
       })
       if (token) {
-        console.log('errorHandler Logout')
         store.dispatch('Logout').then(() => {
           setTimeout(() => {
             window.location.reload()
           }, 1500)
         })
       }
+    } else {
+      message.error(data.msg)
     }
+  } else {
+    message.error('系统错误')
   }
   return Promise.reject(error)
 }
