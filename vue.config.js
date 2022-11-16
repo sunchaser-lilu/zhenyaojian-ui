@@ -1,150 +1,119 @@
-const path = require('path')
+let path = require('path')
 const webpack = require('webpack')
-const packageJson = require('./package.json')
-const GitRevisionPlugin = require('git-revision-webpack-plugin')
-const GitRevision = new GitRevisionPlugin()
-const buildDate = JSON.stringify(new Date().toLocaleString())
-const createThemeColorReplacerPlugin = require('./config/plugin.config')
+const ThemeColorReplacer = require('webpack-theme-color-replacer')
+const { getThemeColors, modifyVars } = require('./src/utils/themeUtil')
+const { resolveCss } = require('./src/utils/theme-color-replacer-extend')
+const CompressionWebpackPlugin = require('compression-webpack-plugin')
 
-function resolve(dir) {
-  return path.join(__dirname, dir)
-}
-
-// check Git
-function getGitHash() {
-  try {
-    return GitRevision.version()
-  } catch (e) { }
-  return 'unknown'
-}
-// eslint-disable-next-line no-unused-vars
+const productionGzipExtensions = ['js', 'css']
 const isProd = process.env.NODE_ENV === 'production'
-// eslint-disable-next-line no-unused-vars
+
 const assetsCDN = {
   // webpack build externals
   externals: {
     vue: 'Vue',
     'vue-router': 'VueRouter',
     vuex: 'Vuex',
-    axios: 'axios'
+    axios: 'axios',
+    nprogress: 'NProgress',
+    clipboard: 'ClipboardJS',
+    '@antv/data-set': 'DataSet',
+    'js-cookie': 'Cookies'
   },
-  css: [],
-  // https://unpkg.com/browse/vue@2.6.10/
+  css: [
+  ],
   js: [
-    '//cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js',
-    '//cdn.jsdelivr.net/npm/vue-router@3.5.1/dist/vue-router.min.js',
-    '//cdn.jsdelivr.net/npm/vuex@3.1.1/dist/vuex.min.js',
-    '//cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js'
+    '//cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js',
+    '//cdn.jsdelivr.net/npm/vue-router@3.3.4/dist/vue-router.min.js',
+    '//cdn.jsdelivr.net/npm/vuex@3.4.0/dist/vuex.min.js',
+    '//cdn.jsdelivr.net/npm/axios@0.19.2/dist/axios.min.js',
+    '//cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js',
+    '//cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js',
+    '//cdn.jsdelivr.net/npm/@antv/data-set@0.11.4/build/data-set.min.js',
+    '//cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js'
   ]
 }
 
-// vue.config.js
-const vueConfig = {
-  configureWebpack: {
-    // webpack plugins
-    plugins: [
-      // Ignore all locale files of moment.js
-      new webpack.IgnorePlugin({
-        contextRegExp: /^\.\/locale$/,
-        resourceRegExp: /moment$/
-      }),
-      new webpack.DefinePlugin({
-        APP_VERSION: `"${packageJson.version}"`,
-        GIT_HASH: JSON.stringify(getGitHash()),
-        BUILD_DATE: buildDate
-      })
-    ]
-    // en_US: `if prod, add externals`
-    // zh_CN: `这里是用来控制编译忽略外部依赖的，与 config.plugin('html') 配合可以编译时引入外部CDN文件依赖`
-    // externals: isProd ? assetsCDN.externals : {}
-  },
-
-  chainWebpack: config => {
-    config.resolve.alias.set('@$', resolve('src'))
-
-    // fixed svg-loader by https://github.com/damianstasik/vue-svg-loader/issues/185#issuecomment-1126721069
-    const svgRule = config.module.rule('svg')
-    // Remove regular svg config from root rules list
-    config.module.rules.delete('svg')
-
-    config.module.rule('svg')
-      // Use svg component rule
-      .oneOf('svg_as_component')
-      .resourceQuery(/inline/)
-      .test(/\.(svg)(\?.*)?$/)
-      .use('babel-loader')
-      .loader('babel-loader')
-      .end()
-      .use('vue-svg-loader')
-      .loader('vue-svg-loader')
-      .options({
-        svgo: {
-          plugins: [
-            { prefixIds: true },
-            { cleanupIDs: true },
-            { convertShapeToPath: false },
-            { convertStyleToAttrs: true }
-          ]
-        }
-      })
-      .end()
-      .end()
-      // Otherwise use original svg rule
-      .oneOf('svg_as_regular')
-      .merge(svgRule.toConfig())
-      .end()
-
-    // en_US: If prod is on assets require on cdn
-    // zh_CN: 如果是 prod 模式，则引入 CDN 依赖文件，有需要减少包大小请自行解除依赖
-    //
-    // if (isProd) {
-    //   config.plugin('html').tap(args => {
-    //     args[0].cdn = assetsCDN
-    //     return args
-    //   })
-    // }
-  },
-
-  css: {
-    loaderOptions: {
-      less: {
-        modifyVars: {
-          // less vars，customize ant design theme
-
-          // 'primary-color': '#F5222D',
-          // 'link-color': '#F5222D',
-          'border-radius-base': '2px'
-        },
-        // DO NOT REMOVE THIS LINE
-        javascriptEnabled: true
-      }
-    }
-  },
-
+module.exports = {
   devServer: {
     // development server port 8000
     port: 8000,
-    // If you want to turn on the proxy, please remove the mockjs /src/main.jsL11
     proxy: {
-      '/zyj/admin': {
+      // If you want to turn on the proxy, please remove the mockjs /src/main.jsL11
+      '/zyj/admin': { //此处要与 /services/api.js 中的 API_PROXY_PREFIX 值保持一致
         target: 'http://127.0.0.1:8080',
         ws: false,
-        changeOrigin: true // 支持跨域
+        // 支持跨域
+        changeOrigin: true
       }
     }
   },
-
-  // disable source map in production
-  productionSourceMap: false,
-  lintOnSave: undefined,
-  // babel-loader no-ignore node_modules/*
-  transpileDependencies: []
+  pluginOptions: {
+    'style-resources-loader': {
+      preProcessor: 'less',
+      patterns: [path.resolve(__dirname, "./src/theme/theme.less")],
+    }
+  },
+  configureWebpack: config => {
+    config.entry.app = ["babel-polyfill", "./src/main.js"];
+    config.performance = {
+      hints: false
+    }
+    config.plugins.push(
+      new ThemeColorReplacer({
+        fileName: 'css/theme-colors-[contenthash:8].css',
+        matchColors: getThemeColors(),
+        injectCss: true,
+        resolveCss
+      })
+    )
+    // Ignore all locale files of moment.js
+    config.plugins.push(new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/))
+    // 生产环境下将资源压缩成gzip格式
+    if (isProd) {
+      // add `CompressionWebpack` plugin to webpack plugins
+      config.plugins.push(new CompressionWebpackPlugin({
+        algorithm: 'gzip',
+        test: new RegExp('\\.(' + productionGzipExtensions.join('|') + ')$'),
+        threshold: 10240,
+        minRatio: 0.8
+      }))
+    }
+    // if prod, add externals
+    if (isProd) {
+      config.externals = assetsCDN.externals
+    }
+  },
+  chainWebpack: config => {
+    // 生产环境下关闭css压缩的 colormin 项，因为此项优化与主题色替换功能冲突
+    if (isProd) {
+      config.plugin('optimize-css')
+        .tap(args => {
+          args[0].cssnanoOptions.preset[1].colormin = false
+          return args
+        })
+    }
+    // 生产环境下使用CDN
+    if (isProd) {
+      config.plugin('html')
+        .tap(args => {
+          args[0].cdn = assetsCDN
+          return args
+        })
+    }
+  },
+  css: {
+    loaderOptions: {
+      less: {
+        lessOptions: {
+          modifyVars: modifyVars(),
+          javascriptEnabled: true
+        }
+      }
+    }
+  },
+  publicPath: process.env.VUE_APP_PUBLIC_PATH,
+  outputDir: 'dist',
+  assetsDir: 'static',
+  productionSourceMap: false
 }
-
-// preview.pro.loacg.com only do not use in your production;
-if (process.env.VUE_APP_PREVIEW === 'true') {
-  // add `ThemeColorReplacer` plugin to webpack plugins
-  vueConfig.configureWebpack.plugins.push(createThemeColorReplacerPlugin())
-}
-
-module.exports = vueConfig

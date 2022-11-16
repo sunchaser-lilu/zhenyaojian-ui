@@ -1,9 +1,7 @@
 const IS_PROD = ['production', 'prod'].includes(process.env.NODE_ENV)
-const IS_PREVIEW = process.env.VUE_APP_PREVIEW === 'true'
 
 const plugins = []
-if (IS_PROD && !IS_PREVIEW) {
-  // 去除日志的插件，
+if (IS_PROD) {
   plugins.push('transform-remove-console')
 }
 
@@ -17,14 +15,7 @@ plugins.push(['import', {
 
 module.exports = {
   presets: [
-    '@vue/cli-plugin-babel/preset',
-    [
-      '@babel/preset-env',
-      {
-        'useBuiltIns': 'entry',
-        'corejs': 3
-      }
-    ]
+    '@vue/cli-plugin-babel/preset'
   ],
   plugins
 }

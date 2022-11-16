@@ -151,7 +151,6 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import '../index.less';
 .icon-picker-select-render {
   position: relative;
   cursor: pointer;

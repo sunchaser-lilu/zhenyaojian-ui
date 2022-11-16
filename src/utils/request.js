@@ -1,10 +1,11 @@
-import axios from 'axios'
-import store from '@/store'
-import storage from 'store'
 import notification from 'ant-design-vue/es/notification'
 import message from 'ant-design-vue/es/message'
-import { VueAxios } from './axios'
-import { ACCESS_TOKEN } from '@/store/mutation-types'
+import axios from 'axios'
+import storage from 'store'
+import { LOGOUT } from '@/services/api'
+
+// 跨域认证信息 header 名
+const ACCESS_TOKEN = 'Authorization'
 
 // 创建 axios 实例
 const request = axios.create({
@@ -12,6 +13,18 @@ const request = axios.create({
   baseURL: process.env.VUE_APP_API_BASE_URL,
   timeout: 6000 // 请求超时时间
 })
+
+// 设置cross跨域 并设置访问权限 允许跨域携带cookie信息,使用JWT可关闭
+request.defaults.withCredentials = true
+
+// http method
+const METHOD = {
+  GET: 'get',
+  POST: 'post',
+  PUT: 'put',
+  PATCH: 'patch',
+  DELETE: 'delete'
+}
 
 // 异常拦截处理器
 const errorHandler = (error) => {
@@ -32,10 +45,14 @@ const errorHandler = (error) => {
         description: 'Authorization verification failed'
       })
       if (token) {
-        store.dispatch('Logout').then(() => {
-          setTimeout(() => {
-            window.location.reload()
-          }, 1500)
+        request({
+          url: LOGOUT,
+          method: METHOD.POST
+        }).then(() => {
+          storage.remove(ACCESS_TOKEN)
+          storage.remove(process.env.VUE_APP_ROUTES_KEY)
+          storage.remove(process.env.VUE_APP_PERMISSIONS_KEY)
+          storage.remove(process.env.VUE_APP_ROLES_KEY)
         })
       }
     } else {
@@ -63,16 +80,8 @@ request.interceptors.response.use((response) => {
   return response.data
 }, errorHandler)
 
-const installer = {
-  vm: {},
-  install(Vue) {
-    Vue.use(VueAxios, request)
-  }
-}
-
-export default request
-
 export {
-  installer as VueAxios,
-  request as axios
+  METHOD,
+  ACCESS_TOKEN,
+  request
 }
