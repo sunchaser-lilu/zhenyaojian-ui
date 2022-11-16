@@ -144,14 +144,10 @@ function loadRoutes(routesConfig) {
   }
   // 提取路由国际化数据
   mergeI18nFromRoutes(i18n, router.options.routes)
-  console.log('loadRoutes')
-  console.log(router)
   // 初始化Admin后台菜单数据
   const rootRoute = router.options.routes.find(item => item.path === '/')
   const menuRoutes = rootRoute && rootRoute.children
   if (menuRoutes) {
-    console.log('menuRoutes')
-    console.log(menuRoutes)
     store.commit('setting/setMenuData', menuRoutes)
   }
 }

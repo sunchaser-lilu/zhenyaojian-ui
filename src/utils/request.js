@@ -53,6 +53,10 @@ const errorHandler = (error) => {
           storage.remove(process.env.VUE_APP_ROUTES_KEY)
           storage.remove(process.env.VUE_APP_PERMISSIONS_KEY)
           storage.remove(process.env.VUE_APP_ROLES_KEY)
+        }).then(() => {
+          setTimeout(() => {
+            window.location.reload()
+          }, 1500)
         })
       }
     } else {

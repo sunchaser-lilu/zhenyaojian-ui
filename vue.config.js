@@ -41,7 +41,7 @@ module.exports = {
     proxy: {
       // If you want to turn on the proxy, please remove the mockjs /src/main.jsL11
       '/zyj/admin': { //此处要与 /services/api.js 中的 API_PROXY_PREFIX 值保持一致
-        target: 'http://127.0.0.1:8080',
+        target: 'http://127.0.0.1:8081',
         ws: false,
         // 支持跨域
         changeOrigin: true

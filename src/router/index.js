@@ -3,6 +3,14 @@ import Router from 'vue-router'
 import { formatRoutes } from '@/utils/routerUtil'
 import store from '@/store'
 
+// https://blog.csdn.net/weixin_43242112/article/details/107595460
+// hack router push callback
+const originalPush = Router.prototype.push
+Router.prototype.push = function push(location, onResolve, onReject) {
+  if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+  return originalPush.call(this, location).catch(err => err)
+}
+
 Vue.use(Router)
 
 // 不需要登录拦截的路由配置
