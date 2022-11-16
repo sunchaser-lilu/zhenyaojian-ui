@@ -10,7 +10,7 @@
     <a-spin :spinning="loading">
       <a-form :form="form" v-bind="formLayout">
         <!-- 检查是否有 id 并且大于0，大于0是修改。其他是新增，新增不显示主键ID -->
-        <a-form-item v-show="model && model.id > 0" label="主键ID">
+        <a-form-item v-show="false" label="主键ID">
           <a-input v-decorator="['id', { initialValue: 0 }]" disabled />
         </a-form-item>
         <a-form-item label="菜单名称">
@@ -34,6 +34,7 @@
             @select="onParentMenuSelect"
             :tree-data="permissionsTree"
             :replace-fields="replaceFields"
+            :disabled="parentMenuDisabled"
             tree-default-expand-all
             v-decorator="[
               'parentId',
@@ -54,7 +55,7 @@
         </a-form-item>
         <a-form-item v-show="showComponet">
           <span slot="label">
-            前端组件
+            前端组件名
             <a-tooltip title="前端页面组件的名称">
               <a-icon type="question-circle-o" />
             </a-tooltip>
@@ -115,18 +116,6 @@ export default {
     model: {
       type: Object,
       default: () => null
-    },
-    onlyBtnType: {
-      type: Boolean,
-      default: () => false
-    },
-    addFlag: {
-      type: Boolean,
-      default: () => false
-    },
-    updateFlag: {
-      type: Boolean,
-      default: () => false
     }
   },
   data() {
@@ -156,11 +145,19 @@ export default {
         disabled: false,
         allowClear: true
       },
-      showPath: false,
+      // 是否展示路由地址表单项
+      showPath: true,
+      // 是否展示前端组件名表单项
       showComponet: true,
+      // 是否展示排序表单项
       showSortValue: true,
+      // 是否禁用上级菜单表单项
+      parentMenuDisabled: false,
+      // 是否禁用前端组件名表单项
       componentDisabled: false,
+      // 是否禁用目录类型的 radio
       catalogRadioDisabled: false,
+      // 是否禁用菜单类型的 radio
       menuRadioDisabled: false,
       form: this.$form.createForm(this)
     }
@@ -169,40 +166,51 @@ export default {
     this.fetchPermissionTree()
     // 防止表单未注册
     fields.forEach((v) => this.form.getFieldDecorator(v))
-    /**
-     * 目录下添加子菜单：可添加任意类型菜单
-     * 菜单下添加子菜单：只可添加按钮（禁用目录和菜单 Radio）
-     * 按钮无添加子菜单按钮
-     */
-    this.$watch('addFlag', () => {
-      if (this.onlyBtnType) {
-        this.catalogRadioDisabled = true
-        this.menuRadioDisabled = true
-        this.form.setFieldsValue({ type: 2 })
-        this.onMenuTypeChange({ target: { value: 2 } })
-      } else {
-        this.initFormStatus()
-      }
-    })
-    this.$watch('updateFlag', () => {
-      this.catalogRadioDisabled = false
-      this.menuRadioDisabled = false
-      this.showPath = this.model.type === 1
-      this.showComponet = true
-      this.showSortValue = true
-      this.componentDisabled = this.model.type === 0
-    })
     // 当 model 发生改变时，为表单设置值
     this.$watch('model', () => {
       this.model && this.form.setFieldsValue(pick(this.model, fields))
     })
   },
   methods: {
-    handleAddLinkage() {},
+    // 处理联动
+    handleAddLinkage(record) {
+      if (record?.id && record?.id !== 0) {
+        // 从表格列点击添加，只能添加当前列下的子菜单
+        // 禁用上级菜单
+        this.parentMenuDisabled = true
+      }
+      /**
+       * 目录下添加子菜单：可添加任意类型菜单
+       * 菜单下添加子菜单：只可添加按钮（禁用目录和菜单 Radio）
+       * 按钮无添加子菜单按钮
+       */
+      if (record?.type === 1) {
+        // 从菜单列点击添加，只允许添加按钮
+        // 禁用目录和菜单 radio，默认选中按钮 radio
+        this.catalogRadioDisabled = true
+        this.menuRadioDisabled = true
+        this.form.getFieldDecorator('type', { initialValue: 2 })
+        // 触发 radio 切换事件
+        this.onMenuTypeChange({ target: { value: 2 } })
+      } else {
+        // 其它情况添加无限制
+        this.initFormStatus()
+      }
+    },
+    handleEditLinkage(record) {
+      // 取消禁用上级菜单
+      this.parentMenuDisabled = false
+      // 取消禁用 radio
+      this.catalogRadioDisabled = false
+      this.menuRadioDisabled = false
+      // 触发 radio 切换事件
+      this.onMenuTypeChange({ target: { value: record.type } })
+    },
     initFormStatus() {
       this.catalogRadioDisabled = false
       this.menuRadioDisabled = false
-      this.showPath = false
+      this.form.getFieldDecorator('type', { initialValue: undefined })
+      this.showPath = true
       this.showComponet = true
       this.showSortValue = true
       this.componentDisabled = false
@@ -221,15 +229,15 @@ export default {
     onMenuTypeChange(event) {
       const value = event.target.value
       if (value === 0) {
-        console.log(this.model)
         // 切换到目录
-        this.showPath = false
+        this.showPath = true
         this.showComponet = true
         this.showSortValue = true
+        // 禁用 component，值固定为 BlankView
         this.componentDisabled = true
-        this.form.getFieldDecorator('component', { initialValue: 'RouteView' })
-        this.catalogRadioDisabled = false
-        this.menuRadioDisabled = false
+        this.form.getFieldDecorator('component', { initialValue: 'BlankView' })
+        // this.catalogRadioDisabled = false
+        // this.menuRadioDisabled = false
         this.filter = FILTER_CATALOG
       } else if (value === 1) {
         // 切换到菜单
@@ -240,7 +248,7 @@ export default {
         this.form.getFieldDecorator('component', { initialValue: '' })
         this.filter = FILTER_CATALOG
       } else if (value === 2) {
-        // 按钮
+        // 切换到按钮
         this.showPath = false
         this.showComponet = false
         this.showSortValue = false

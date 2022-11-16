@@ -6,22 +6,32 @@
           <a-row :gutter="24">
             <a-col :md="8" :sm="24">
               <a-form-item label="菜单名称">
-                <a-input v-model="queryParam.id" placeholder="" />
+                <a-input v-model="queryParam.name" placeholder="" />
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
               <span class="table-page-search-submitButtons">
                 <a-button type="primary" @click="fetchPermissionList()">查询</a-button>
-                <a-button style="margin-left: 8px" @click="() => (this.queryParam = {})">重置</a-button>
+                <a-button
+                  style="margin-left: 8px"
+                  @click="
+                    () => {
+                      this.queryParam = {}
+                      fetchPermissionList()
+                    }
+                  "
+                >
+                  重置
+                </a-button>
               </span>
             </a-col>
           </a-row>
         </a-form>
       </div>
 
-      <div class="table-operator">
-        <a-button type="primary" icon="plus" @click="handleAdd()">新建</a-button>
-      </div>
+      <a-space class="operator">
+        <a-button @click="handleAdd()" type="primary" icon="plus">新建</a-button>
+      </a-space>
 
       <a-table
         ref="table"
@@ -34,10 +44,17 @@
         :loading="loading"
         :expandIcon="expandIcon"
       >
-        <!-- :expandIcon="expandIcon" -->
         <span slot="name" slot-scope="text, record">
           <a-icon :type="record.icon" />&nbsp;
           {{ text }}
+        </span>
+        <span slot="status" slot-scope="text, record">
+          <a-switch
+            checked-children="隐藏"
+            un-checked-children="显示"
+            :default-checked="text === 0"
+            @change="(checked, event) => onStatusChange(record, checked)"
+          />
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
@@ -61,9 +78,6 @@
         :visible="visible"
         :loading="confirmLoading"
         :model="mdl"
-        :onlyBtnType="onlyBtnType"
-        :addFlag="addFlag"
-        :updateFlag="updateFlag"
         @cancel="handleCancel"
         @ok="handleOk"
       />
@@ -75,6 +89,8 @@
 import PageLayout from '@/layouts/PageLayout'
 import { createPermission, updatePermission, deletePermission, getPermissionList } from '@/services/menu'
 import CreateForm from './modules/CreateForm'
+import { loadRoutes } from '@/utils/routerUtil'
+import { getUserMenu } from '@/services/user'
 
 const columns = [
   {
@@ -93,6 +109,11 @@ const columns = [
   {
     title: '排序',
     dataIndex: 'sortValue'
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    scopedSlots: { customRender: 'status' }
   },
   {
     title: '更新时间',
@@ -123,9 +144,10 @@ export default {
       // 查询参数
       queryParam: {},
       // create form 联动
-      onlyBtnType: false,
-      addFlag: false,
-      updateFlag: false,
+      record: null,
+      // onlyBtnType: false,
+      // addFlag: false,
+      // updateFlag: false,
       // 表格数据
       data: null,
       // 表格加载
@@ -136,10 +158,9 @@ export default {
     this.fetchPermissionList()
   },
   methods: {
-    fetchPermissionList(parameter) {
+    fetchPermissionList() {
       this.loading = true
-      const requestParameters = Object.assign({}, parameter, this.queryParam)
-      getPermissionList(requestParameters)
+      getPermissionList(this.queryParam)
         .then((res) => {
           this.data = res.data
         })
@@ -147,63 +168,74 @@ export default {
           this.loading = false
         })
     },
+    onStatusChange(record, checked) {
+      // + 语法，将布尔值转化为数字
+      record.status = +!checked
+      updatePermission(record).then(() => {
+        // 刷新上级菜单树形选择框
+        this.$refs.createModal.fetchPermissionTree()
+        // 刷新路由和左侧导航
+        getUserMenu().then((res) => {
+          loadRoutes(res.data)
+        })
+      })
+    },
     handleAdd(record) {
       this.visible = true
       this.mdl = {
-        // 菜单下只能添加按钮
-        type: record && record.type === 1 ? 2 : undefined,
         // 默认选择父级菜单
         parentId: record ? record.id : '0'
       }
-      this.addFlag = !this.addFlag
-      this.onlyBtnType = record && record.type === 1
+      this.$refs.createModal.handleAddLinkage(record)
     },
     handleEdit(record) {
       this.visible = true
       this.mdl = { ...record }
-      this.updateFlag = !this.updateFlag
+      this.$refs.createModal.handleEditLinkage(record)
     },
     handleOk() {
-      const form = this.$refs.createModal.form
+      const createModal = this.$refs.createModal
       this.confirmLoading = true
-      form.validateFields((errors, values) => {
+      createModal.form.validateFields((errors, values) => {
         if (!errors) {
           if (values.id > 0) {
             // 修改 e.g.
             updatePermission(values)
               .then(() => {
-                this.visible = false
-                this.confirmLoading = false
-                // 重置表单数据
-                form.resetFields()
-                // 刷新表格
-                this.fetchPermissionList()
+                this.okPostProcess(createModal)
                 this.$message.success('修改成功')
               })
               .finally(() => {
                 this.confirmLoading = false
-                this.$refs.createModal.fetchPermissionTree()
               })
           } else {
             // 新增
             createPermission(values)
               .then(() => {
-                this.visible = false
-                this.confirmLoading = false
-                // 重置表单数据
-                form.resetFields()
-                // 刷新表格
-                this.fetchPermissionList()
+                this.okPostProcess(createModal)
                 this.$message.success('新增成功')
               })
               .finally(() => {
                 this.confirmLoading = false
-                this.$refs.createModal.fetchPermissionTree()
               })
           }
         } else {
           this.confirmLoading = false
         }
+      })
+    },
+    okPostProcess(createModal) {
+      this.visible = false
+      this.confirmLoading = false
+      // 重置表单数据
+      createModal.form.resetFields()
+      // 刷新表格
+      this.fetchPermissionList()
+      // 刷新上级菜单树形选择框
+      createModal.fetchPermissionTree()
+      // 刷新路由和左侧导航
+      getUserMenu().then((res) => {
+        loadRoutes(res.data)
       })
     },
     handleCancel() {
@@ -254,3 +286,42 @@ export default {
   }
 }
 </script>
+
+<style lang="less">
+// 数据列表 搜索条件
+.table-page-search-wrapper {
+  .ant-form-inline {
+    .ant-form-item {
+      display: flex;
+      margin-right: 0;
+      margin-bottom: 24px;
+
+      .ant-form-item-control-wrapper {
+        flex: 1 1;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      > .ant-form-item-label {
+        width: auto;
+        padding-right: 8px;
+        line-height: 32px;
+      }
+
+      .ant-form-item-control {
+        height: 32px;
+        line-height: 32px;
+      }
+    }
+  }
+
+  .table-page-search-submitButtons {
+    display: block;
+    margin-bottom: 24px;
+    white-space: nowrap;
+  }
+}
+.operator {
+  margin-bottom: 18px;
+}
+</style>
