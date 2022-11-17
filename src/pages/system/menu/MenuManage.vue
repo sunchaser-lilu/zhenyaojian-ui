@@ -143,11 +143,6 @@ export default {
       mdl: null,
       // 查询参数
       queryParam: {},
-      // create form 联动
-      record: null,
-      // onlyBtnType: false,
-      // addFlag: false,
-      // updateFlag: false,
       // 表格数据
       data: null,
       // 表格加载
