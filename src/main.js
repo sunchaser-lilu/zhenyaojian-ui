@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import './theme/index.less'
+import './global.less'
 // import '@/mock'
 import store from './store'
 import '@/core/lazy_use' // use lazy load components
