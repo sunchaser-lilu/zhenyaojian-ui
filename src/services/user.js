@@ -1,7 +1,7 @@
-import { LOGIN, LOGOUT, USER_MENU, USER_INFO, ROUTES } from '@/services/api'
+import { LOGIN, LOGOUT, USER_MENU, USER_INFO, USER, USERS, ROUTES } from '@/services/api'
 import { request, METHOD } from '@/utils/request'
 
-const { GET, POST } = METHOD
+const { GET, POST, PATCH, DELETE } = METHOD
 
 /**
  * 登录服务
@@ -35,6 +35,37 @@ export function logout() {
   return request({
     url: LOGOUT,
     method: POST
+  })
+}
+
+export function createUser(parameter) {
+  return request({
+    url: USER,
+    method: POST,
+    data: parameter
+  })
+}
+
+export function updateUser(parameter) {
+  return request({
+    url: USER,
+    method: PATCH,
+    data: parameter
+  })
+}
+
+export function getPageUserList(parameter) {
+  return request({
+    url: USERS,
+    method: GET,
+    params: parameter
+  })
+}
+
+export function deleteUser(parameter) {
+  return request({
+    url: `${USER}/${parameter}`,
+    method: DELETE
   })
 }
 

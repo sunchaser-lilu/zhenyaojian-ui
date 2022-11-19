@@ -6,6 +6,8 @@ module.exports = {
   LOGOUT: '/auth/logout',
   USER_MENU: '/user/menu',
   USER_INFO: '/user/info',
+  USER: '/user',
+  USERS: '/users',
 
   PERMISSION: '/permission',
   PERMISSIONS: '/permissions',
