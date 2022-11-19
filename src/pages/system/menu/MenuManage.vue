@@ -43,29 +43,34 @@
         bordered
         :loading="loading"
         :expandIcon="expandIcon"
+        :scroll="{ x: 'calc(700px + 50%)' }"
       >
         <span slot="name" slot-scope="text, record">
           <a-icon :type="record.icon" />&nbsp;
           {{ text }}
         </span>
-        <span slot="status" slot-scope="text, record">
-          <a-switch
-            checked-children="隐藏"
-            un-checked-children="显示"
-            :default-checked="text === 0"
-            @change="(checked, event) => onStatusChange(record, checked)"
-          />
+        <span slot="status" slot-scope="text">
+          <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
             <a-tag color="cyan" @click="handleAdd(record)"> 添加 </a-tag>
             <a-tag color="orange" @click="handleEdit(record)"> 修改 </a-tag>
             <a-popconfirm
+              :title="'确认' + disableOrEnable(record.status) + '该菜单吗?'"
+              ok-text="确认"
+              cancel-text="取消"
+              @confirm="handleDisableConfirm(record)"
+              @cancel="handleConfirmCancel()"
+            >
+              <a-tag :color="record.status === 0 ? '' : 'green'">{{ disableOrEnable(record.status) }}</a-tag>
+            </a-popconfirm>
+            <a-popconfirm
               title="确认删除该条记录吗?"
               ok-text="确认"
               cancel-text="取消"
               @confirm="handleDelConfirm(record)"
-              @cancel="handleDelCancel(record)"
+              @cancel="handleConfirmCancel()"
             >
               <a-tag style="margin-right: 0" color="red"> 删除 </a-tag>
             </a-popconfirm>
@@ -100,11 +105,18 @@ const columns = [
   },
   {
     title: '路由地址',
-    dataIndex: 'path'
+    dataIndex: 'path',
+    customRender: (text) => {
+      return text || '—'
+    },
+    ellipsis: true
   },
   {
     title: '前端组件',
-    dataIndex: 'component'
+    dataIndex: 'component',
+    customRender: (text) => {
+      return text || '—'
+    }
   },
   {
     title: '排序',
@@ -117,16 +129,28 @@ const columns = [
   },
   {
     title: '更新时间',
-    dataIndex: 'updateTime'
+    dataIndex: 'updateTime',
+    width: 180
   },
   {
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 180,
+    width: 217,
     scopedSlots: { customRender: 'action' }
   }
 ]
+
+const statusMap = {
+  0: {
+    status: 'success',
+    text: '正常'
+  },
+  1: {
+    status: 'default',
+    text: '隐藏'
+  }
+}
 
 export default {
   name: 'MenuManage',
@@ -149,6 +173,14 @@ export default {
       loading: false
     }
   },
+  filters: {
+    statusFilter(status) {
+      return statusMap[status].text
+    },
+    statusTypeFilter(status) {
+      return statusMap[status].status
+    }
+  },
   created() {
     this.fetchPermissionList()
   },
@@ -163,17 +195,8 @@ export default {
           this.loading = false
         })
     },
-    onStatusChange(record, checked) {
-      // + 语法，将布尔值转化为数字
-      record.status = +!checked
-      updatePermission(record).then(() => {
-        // 刷新上级菜单树形选择框
-        this.$refs.createModal.fetchPermissionTree()
-        // 刷新路由和左侧导航
-        getUserMenu().then((res) => {
-          loadRoutes(res.data)
-        })
-      })
+    disableOrEnable(status) {
+      return status === 0 ? '隐藏' : '显示'
     },
     handleAdd(record) {
       this.visible = true
@@ -238,6 +261,19 @@ export default {
       const form = this.$refs.createModal.form
       form.resetFields() // 清理表单数据（可不做）
     },
+    handleDisableConfirm(record) {
+      updatePermission({ ...record, status: record.status === 0 ? 1 : 0 }).then(() => {
+        this.$message.success(this.disableOrEnable(record.status) + '成功')
+        // 刷新表格
+        this.fetchPermissionList()
+        // 刷新上级菜单树形选择框
+        this.$refs.createModal.fetchPermissionTree()
+        // 刷新路由和左侧导航
+        getUserMenu().then((res) => {
+          loadRoutes(res.data)
+        })
+      })
+    },
     handleDelConfirm(record) {
       deletePermission(record.id).then(() => {
         // 刷新表格
@@ -245,7 +281,7 @@ export default {
         this.$message.success('删除成功')
       })
     },
-    handleDelCancel() {
+    handleConfirmCancel() {
       this.$message.info('操作取消')
     },
     // table 自定义展开图标
@@ -281,42 +317,3 @@ export default {
   }
 }
 </script>
-
-<style lang="less">
-// 数据列表 搜索条件
-.table-page-search-wrapper {
-  .ant-form-inline {
-    .ant-form-item {
-      display: flex;
-      margin-right: 0;
-      margin-bottom: 24px;
-
-      .ant-form-item-control-wrapper {
-        flex: 1 1;
-        display: inline-block;
-        vertical-align: middle;
-      }
-
-      > .ant-form-item-label {
-        width: auto;
-        padding-right: 8px;
-        line-height: 32px;
-      }
-
-      .ant-form-item-control {
-        height: 32px;
-        line-height: 32px;
-      }
-    }
-  }
-
-  .table-page-search-submitButtons {
-    display: block;
-    margin-bottom: 24px;
-    white-space: nowrap;
-  }
-}
-.operator {
-  margin-bottom: 18px;
-}
-</style>

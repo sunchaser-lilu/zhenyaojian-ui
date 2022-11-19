@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="新建菜单"
+    :title="model && model.id > 0 ? '修改菜单' : '新建菜单'"
     :width="640"
     :visible="visible"
     :confirmLoading="loading"
@@ -22,9 +22,9 @@
             @change="onMenuTypeChange"
             v-decorator="['type', { rules: [{ required: true, message: '请选择菜单类型' }] }]"
           >
-            <a-radio :value="0" :disabled="catalogRadioDisabled"> 目录 </a-radio>
-            <a-radio :value="1" :disabled="menuRadioDisabled"> 菜单 </a-radio>
-            <a-radio :value="2"> 按钮 </a-radio>
+            <a-radio value="0" :disabled="catalogRadioDisabled"> 目录 </a-radio>
+            <a-radio value="1" :disabled="menuRadioDisabled"> 菜单 </a-radio>
+            <a-radio value="2"> 按钮 </a-radio>
           </a-radio-group>
         </a-form-item>
         <a-form-item label="上级菜单">
