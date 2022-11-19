@@ -1,14 +1,12 @@
 import { hasAuthority } from '@/utils/authority-utils'
 import { ACCESS_TOKEN } from '@/utils/request'
-import { loginIgnore, resetRouter } from '@/router/index'
+import { loginIgnore, resetRouter, LOGIN_PATH } from '@/router/index'
 import NProgress from 'nprogress'
 import storage from 'store'
 import { getUserMenu } from '@/services/user'
 import { loadRoutes } from '@/utils/routerUtil'
 
 NProgress.configure({ showSpinner: false })
-
-const loginRoutePath = '/user/login'
 
 /**
  * 进度条开始
@@ -36,7 +34,7 @@ const loginGuard = (to, from, next, options) => {
   // 从 localstorage 获取 token
   const token = storage.get(ACCESS_TOKEN)
   if (token) {
-    if (to.path === loginRoutePath) {
+    if (to.path === LOGIN_PATH) {
       next({ path: '/system/menu' })
       NProgress.done()
     } else {
@@ -66,7 +64,7 @@ const loginGuard = (to, from, next, options) => {
             })
             // 失败时，获取用户信息失败时，调用登出，来清空历史保留信息
             // store.dispatch('Logout').then(() => {
-            //   next({ path: loginRoutePath, query: { redirect: to.fullPath } })
+            //   next({ path: LOGIN_PATH, query: { redirect: to.fullPath } })
             // })
           })
       } else {
@@ -78,7 +76,7 @@ const loginGuard = (to, from, next, options) => {
       // 免登录拦截，直接进入
       next()
     } else {
-      next({ path: loginRoutePath, query: { redirect: to.fullPath } })
+      next({ path: LOGIN_PATH, query: { redirect: to.fullPath } })
     }
   }
 }

@@ -23,8 +23,11 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import { logout } from '@/services/user'
+import { LOGIN_PATH } from '@/router'
+import { ACCESS_TOKEN } from '@/utils/request'
+import storage from 'store'
 
 export default {
   name: 'HeaderAvatar',
@@ -34,8 +37,15 @@ export default {
   methods: {
     logout() {
       logout()
-      this.$router.push('/login')
-    }
+      storage.remove(process.env.VUE_APP_USER_KEY)
+      storage.remove(process.env.VUE_APP_ROLES_KEY)
+      storage.remove(ACCESS_TOKEN)
+      this.setMenuData([])
+      setTimeout(() => {
+        this.$router.push(LOGIN_PATH)
+      }, 1000)
+    },
+    ...mapMutations('setting', ['setMenuData'])
   }
 }
 </script>
