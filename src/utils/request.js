@@ -26,10 +26,11 @@ const METHOD = {
   DELETE: 'delete'
 }
 
+const SYSTEM_ERROR = '系统错误'
+
 // 异常拦截处理器
 const errorHandler = (error) => {
   if (error.response) {
-    console.log(error.response)
     const data = error.response.data
     // 从 localstorage 获取 token
     const token = storage.get(ACCESS_TOKEN)
@@ -56,14 +57,14 @@ const errorHandler = (error) => {
         }).then(() => {
           setTimeout(() => {
             window.location.reload()
-          }, 1500)
+          }, 1000)
         })
       }
     } else {
-      message.error(data.msg)
+      message.error(data.msg || SYSTEM_ERROR)
     }
   } else {
-    message.error('系统错误')
+    message.error(SYSTEM_ERROR)
   }
   return Promise.reject(error)
 }

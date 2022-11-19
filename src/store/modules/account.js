@@ -78,11 +78,9 @@ export default {
 
   actions: {
     GetUser({ commit }) {
-      console.log('GetUser')
       return new Promise((resolve, reject) => {
         getUserInfo().then(response => {
           const result = response.data
-          console.log(result)
           commit('setUser', result)
           // 下游
           resolve(result)
