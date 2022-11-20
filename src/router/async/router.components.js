@@ -11,7 +11,8 @@ const routerComponents = {
   // 需要动态引入的组件
   Login: () => import('@/pages/login'),
   MenuManage: () => import('@/pages/system/menu/MenuManage'),
-  UserManage: () => import('@/pages/system/user/UserManage')
+  UserManage: () => import('@/pages/system/user/UserManage'),
+  RoleManage: () => import('@/pages/system/role/RoleManage')
 }
 
 export default routerComponents
