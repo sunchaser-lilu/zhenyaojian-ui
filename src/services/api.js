@@ -9,6 +9,9 @@ module.exports = {
   USER: '/user',
   USERS: '/users',
 
+  ROLE: '/role',
+  ROLES: '/roles',
+
   PERMISSION: '/permission',
   PERMISSIONS: '/permissions',
   PERMISSION_TREE: '/permissions/tree',
