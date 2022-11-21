@@ -54,8 +54,8 @@
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
-            <a-tag color="cyan" @click="handleAdd(record)"> 添加 </a-tag>
-            <a-tag color="orange" @click="handleEdit(record)"> 修改 </a-tag>
+            <a style="margin-right: 8px" @click="handleAdd(record)"><a-icon type="plus" />新建</a>
+            <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a-popconfirm
               :title="'确认' + disableOrEnable(record.status) + '该菜单吗?'"
               ok-text="确认"
@@ -63,7 +63,10 @@
               @confirm="handleDisableConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag :color="record.status === 0 ? '' : 'green'">{{ disableOrEnable(record.status) }}</a-tag>
+              <a style="margin-right: 8px">
+                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />
+                {{ disableOrEnable(record.status) }}
+              </a>
             </a-popconfirm>
             <a-popconfirm
               title="确认删除该条记录吗?"
@@ -72,7 +75,7 @@
               @confirm="handleDelConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag style="margin-right: 0" color="red"> 删除 </a-tag>
+              <a><a-icon type="delete" />删除</a>
             </a-popconfirm>
           </template>
         </span>
@@ -136,7 +139,7 @@ const columns = [
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 217,
+    width: 233,
     scopedSlots: { customRender: 'action' }
   }
 ]
