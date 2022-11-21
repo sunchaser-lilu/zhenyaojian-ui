@@ -16,5 +16,7 @@ module.exports = {
   PERMISSIONS: '/permissions',
   PERMISSION_TREE: '/permissions/tree',
 
+  ROLE_PERMISSION: '/role/permission',
+
   ROUTES: '/routes'
 }

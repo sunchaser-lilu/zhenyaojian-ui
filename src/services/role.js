@@ -1,5 +1,6 @@
-import { ROLE, ROLES } from '@/services/api'
+import { ROLE, ROLES, ROLE_PERMISSION } from '@/services/api'
 import { request, METHOD } from '@/utils/request'
+import { PERMISSION } from './api'
 
 const { GET, POST, PATCH, DELETE } = METHOD
 
@@ -31,5 +32,21 @@ export function deleteRole(parameter) {
   return request({
     url: `${ROLE}/${parameter}`,
     method: DELETE
+  })
+}
+
+export function assignRolePermission(parameter) {
+  console.log(ROLE_PERMISSION)
+  return request({
+    url: ROLE_PERMISSION,
+    method: POST,
+    data: parameter
+  })
+}
+
+export function getRolePermissions(parameter) {
+  return request({
+    url: `${ROLE}/${parameter}/${PERMISSION}`,
+    method: GET
   })
 }

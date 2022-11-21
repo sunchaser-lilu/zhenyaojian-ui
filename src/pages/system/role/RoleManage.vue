@@ -48,7 +48,8 @@
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
-            <a-tag color="orange" @click="handleEdit(record)">修改</a-tag>
+            <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
+            <a style="margin-right: 8px" @click="handleAssign(record)"><a-icon type="snippets" />赋权</a>
             <a-popconfirm
               :title="'确认' + disableOrEnable(record.status) + '该角色吗?'"
               ok-text="确认"
@@ -56,7 +57,10 @@
               @confirm="handleDisableConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag :color="record.status === 0 ? 'cyan' : 'green'">{{ disableOrEnable(record.status) }}</a-tag>
+              <a style="margin-right: 8px">
+                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />
+                {{ disableOrEnable(record.status) }}
+              </a>
             </a-popconfirm>
             <a-popconfirm
               title="确认删除该角色吗?"
@@ -65,7 +69,7 @@
               @confirm="handleDelConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag style="margin-right: 0" color="red">删除</a-tag>
+              <a><a-icon type="delete" />删除</a>
             </a-popconfirm>
           </template>
         </span>
@@ -79,6 +83,15 @@
         @cancel="handleCancel"
         @ok="handleOk"
       />
+
+      <assign-permission
+        ref="assignPermissionModal"
+        :visible="assignVisible"
+        :loading="confirmLoading"
+        :model="mdl"
+        @ok="handleAssignOk"
+        @cancel="handleAssignCancel"
+      />
     </a-card>
   </page-layout>
 </template>
@@ -86,7 +99,8 @@
 <script>
 import PageLayout from '@/layouts/PageLayout'
 import OpsRoleForm from './modules/OpsRoleForm'
-import { createRole, updateRole, deleteRole, getPageRoleList } from '@/services/role'
+import AssignPermission from './modules/AssignPermission'
+import { createRole, updateRole, deleteRole, getPageRoleList, assignRolePermission } from '@/services/role'
 
 const columns = [
   {
@@ -110,7 +124,7 @@ const columns = [
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 180,
+    width: 240,
     scopedSlots: { customRender: 'action' }
   }
 ]
@@ -130,7 +144,8 @@ export default {
   name: 'RoleManage',
   components: {
     PageLayout,
-    OpsRoleForm
+    OpsRoleForm,
+    AssignPermission
   },
   data() {
     this.columns = columns
@@ -144,7 +159,8 @@ export default {
       // 表格数据
       data: null,
       // 表格加载
-      loading: false
+      loading: false,
+      assignVisible: false
     }
   },
   filters: {
@@ -174,6 +190,10 @@ export default {
     },
     handleEdit(record) {
       this.visible = true
+      this.mdl = { ...record }
+    },
+    handleAssign(record) {
+      this.assignVisible = true
       this.mdl = { ...record }
     },
     handleOk() {
@@ -209,7 +229,6 @@ export default {
     },
     okPostProcess(opsRoleModal) {
       this.visible = false
-      this.confirmLoading = false
       // 重置表单数据
       opsRoleModal.form.resetFields()
       // 刷新表格
@@ -219,6 +238,29 @@ export default {
       this.visible = false
       const form = this.$refs.opsRoleModal.form
       form.resetFields() // 清理表单数据（可不做）
+    },
+    handleAssignOk() {
+      const assignPermissionModal = this.$refs.assignPermissionModal
+      this.confirmLoading = true
+      assignPermissionModal.form.validateFields((errors, values) => {
+        if (!errors) {
+          console.log(values)
+          assignRolePermission({ roleId: values.id, permissionIds: values.permissionIds })
+            .then(() => {
+              this.assignVisible = false
+              // 重置表单数据
+              assignPermissionModal.form.resetFields()
+            })
+            .finally(() => {
+              this.confirmLoading = false
+            })
+        } else {
+          this.confirmLoading = false
+        }
+      })
+    },
+    handleAssignCancel() {
+      this.assignVisible = false
     },
     disableOrEnable(status) {
       return status === 0 ? '停用' : '启用'
