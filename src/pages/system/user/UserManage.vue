@@ -42,6 +42,7 @@
         :pagination="true"
         bordered
         :loading="loading"
+        :scroll="{ x: 'calc(700px + 50%)' }"
       >
         <span slot="avatar" slot-scope="text">
           <a-avatar :src="text" />
@@ -54,7 +55,7 @@
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
-            <a-tag color="orange" @click="handleEdit(record)">修改</a-tag>
+            <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a-popconfirm
               :title="'确认' + disableOrEnable(record.status) + '该用户吗?'"
               ok-text="确认"
@@ -62,7 +63,10 @@
               @confirm="handleDisableConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag :color="record.status === 0 ? 'cyan' : 'green'">{{ disableOrEnable(record.status) }}</a-tag>
+              <a style="margin-right: 8px">
+                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />
+                {{ disableOrEnable(record.status) }}
+              </a>
             </a-popconfirm>
             <a-popconfirm
               title="确认删除该用户吗?"
@@ -71,7 +75,7 @@
               @confirm="handleDelConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a-tag style="margin-right: 0" color="red">删除</a-tag>
+              <a><a-icon type="delete" />删除</a>
             </a-popconfirm>
           </template>
         </span>
@@ -97,14 +101,16 @@ import { createUser, updateUser, deleteUser, getPageUserList } from '@/services/
 const columns = [
   {
     title: '账号',
-    dataIndex: 'account'
+    dataIndex: 'account',
+    ellipsis: true
   },
   {
     title: '昵称',
     dataIndex: 'nickName',
     customRender: (text) => {
       return text || '—'
-    }
+    },
+    ellipsis: true
   },
   {
     title: '头像',
@@ -137,13 +143,14 @@ const columns = [
   },
   {
     title: '更新时间',
-    dataIndex: 'updateTime'
+    dataIndex: 'updateTime',
+    width: 180
   },
   {
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 180,
+    width: 183,
     scopedSlots: { customRender: 'action' }
   }
 ]
