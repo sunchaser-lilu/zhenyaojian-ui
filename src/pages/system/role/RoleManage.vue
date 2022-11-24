@@ -11,7 +11,7 @@
             </a-col>
             <a-col :md="8" :sm="24">
               <span class="table-page-search-submitButtons">
-                <a-button type="primary" @click="fetchPageRoleList()">查询</a-button>
+                <a-button type="primary" @click="fetchPageRoleList()">搜索</a-button>
                 <a-button
                   style="margin-left: 8px"
                   @click="
@@ -47,7 +47,8 @@
           <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
         </span>
         <span slot="action" slot-scope="text, record">
-          <template>
+          <template v-if="record.id === 1"><a-tag color="red">无法操作超级管理员角色</a-tag></template>
+          <template v-if="record.id !== 1">
             <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a style="margin-right: 8px" @click="handleAssign(record)"><a-icon type="snippets" />赋权</a>
             <a-popconfirm
@@ -58,8 +59,9 @@
               @cancel="handleConfirmCancel()"
             >
               <a style="margin-right: 8px">
-                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />
-                {{ disableOrEnable(record.status) }}
+                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />{{
+                  disableOrEnable(record.status)
+                }}
               </a>
             </a-popconfirm>
             <a-popconfirm
