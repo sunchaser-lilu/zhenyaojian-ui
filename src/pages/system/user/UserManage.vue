@@ -11,7 +11,7 @@
             </a-col>
             <a-col :md="8" :sm="24">
               <span class="table-page-search-submitButtons">
-                <a-button type="primary" @click="fetchPageUserList()">查询</a-button>
+                <a-button type="primary" @click="fetchPageUserList()">搜索</a-button>
                 <a-button
                   style="margin-left: 8px"
                   @click="
@@ -54,7 +54,8 @@
           <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
         </span>
         <span slot="action" slot-scope="text, record">
-          <template>
+          <template v-if="record.id === 1"><a-tag color="red">无法操作超级管理员账户</a-tag></template>
+          <template v-if="record.id !== 1">
             <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a-popconfirm
               :title="'确认' + disableOrEnable(record.status) + '该用户吗?'"
@@ -64,8 +65,9 @@
               @cancel="handleConfirmCancel()"
             >
               <a style="margin-right: 8px">
-                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />
-                {{ disableOrEnable(record.status) }}
+                <a-icon :type="record.status === 0 ? 'close-circle' : 'check-circle'" />{{
+                  disableOrEnable(record.status)
+                }}
               </a>
             </a-popconfirm>
             <a-popconfirm
@@ -75,19 +77,39 @@
               @confirm="handleDelConfirm(record)"
               @cancel="handleConfirmCancel()"
             >
-              <a><a-icon type="delete" />删除</a>
+              <a style="margin-right: 8px"><a-icon type="delete" />删除</a>
             </a-popconfirm>
+            <a-dropdown>
+              <a class="ant-dropdown-link" @click="(e) => e.preventDefault()"><a-icon type="double-right" />更多</a>
+              <a-menu slot="overlay">
+                <a-menu-item>
+                  <a @click="handleAssign(record)"><a-icon type="snippets" /> 分配角色</a>
+                </a-menu-item>
+                <a-menu-item>
+                  <a @click="handleAssign(record)"><a-icon type="snippets" /> 重置密码</a>
+                </a-menu-item>
+              </a-menu>
+            </a-dropdown>
           </template>
         </span>
       </a-table>
 
-      <create-form
-        ref="createModal"
+      <ops-user-form
+        ref="opsUserModal"
         :visible="visible"
         :loading="confirmLoading"
         :model="mdl"
         @cancel="handleCancel"
         @ok="handleOk"
+      />
+
+      <assign-role
+        ref="assignRoleModal"
+        :visible="assignVisible"
+        :loading="confirmLoading"
+        :model="mdl"
+        @ok="handleAssignOk"
+        @cancel="handleAssignCancel"
       />
     </a-card>
   </page-layout>
@@ -95,8 +117,9 @@
 
 <script>
 import PageLayout from '@/layouts/PageLayout'
-import CreateForm from './modules/CreateForm'
-import { createUser, updateUser, deleteUser, getPageUserList } from '@/services/user'
+import OpsUserForm from './modules/OpsUserForm'
+import AssignRole from './modules/AssignRole'
+import { createUser, updateUser, deleteUser, getPageUserList, assignUserRole } from '@/services/user'
 
 const columns = [
   {
@@ -127,7 +150,9 @@ const columns = [
     dataIndex: 'email',
     customRender: (text) => {
       return text || '—'
-    }
+    },
+    width: 180,
+    ellipsis: true
   },
   {
     title: '电话号码',
@@ -150,7 +175,7 @@ const columns = [
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 183,
+    width: 230,
     scopedSlots: { customRender: 'action' }
   }
 ]
@@ -170,7 +195,8 @@ export default {
   name: 'UserManage',
   components: {
     PageLayout,
-    CreateForm
+    OpsUserForm,
+    AssignRole
   },
   data() {
     this.columns = columns
@@ -184,7 +210,8 @@ export default {
       // 表格数据
       data: null,
       // 表格加载
-      loading: false
+      loading: false,
+      assignVisible: false
     }
   },
   filters: {
@@ -221,16 +248,20 @@ export default {
       this.visible = true
       this.mdl = { ...record }
     },
+    handleAssign(record) {
+      this.assignVisible = true
+      this.mdl = { ...record }
+    },
     handleOk() {
-      const createModal = this.$refs.createModal
+      const opsUserModal = this.$refs.opsUserModal
       this.confirmLoading = true
-      createModal.form.validateFields((errors, values) => {
+      opsUserModal.form.validateFields((errors, values) => {
         if (!errors) {
           if (values.id > 0) {
             // 修改 e.g.
             updateUser(values)
               .then(() => {
-                this.okPostProcess(createModal)
+                this.okPostProcess(opsUserModal)
                 this.$message.success('修改成功')
               })
               .finally(() => {
@@ -240,7 +271,7 @@ export default {
             // 新增
             createUser(values)
               .then(() => {
-                this.okPostProcess(createModal)
+                this.okPostProcess(opsUserModal)
                 this.$message.success('新增成功')
               })
               .finally(() => {
@@ -252,18 +283,41 @@ export default {
         }
       })
     },
-    okPostProcess(createModal) {
+    okPostProcess(opsUserModal) {
       this.visible = false
       this.confirmLoading = false
       // 重置表单数据
-      createModal.form.resetFields()
+      opsUserModal.form.resetFields()
       // 刷新表格
       this.fetchPageUserList()
     },
     handleCancel() {
       this.visible = false
-      const form = this.$refs.createModal.form
+      const form = this.$refs.opsUserModal.form
       form.resetFields() // 清理表单数据（可不做）
+    },
+    handleAssignOk() {
+      const assignRoleModal = this.$refs.assignRoleModal
+      this.confirmLoading = true
+      assignRoleModal.form.validateFields((errors, values) => {
+        if (!errors) {
+          console.log(values)
+          assignUserRole({ userId: values.id, roleIds: values.roleIds })
+            .then(() => {
+              this.assignVisible = false
+              // 重置表单数据
+              assignRoleModal.form.resetFields()
+            })
+            .finally(() => {
+              this.confirmLoading = false
+            })
+        } else {
+          this.confirmLoading = false
+        }
+      })
+    },
+    handleAssignCancel() {
+      this.assignVisible = false
     },
     disableOrEnable(status) {
       return status === 0 ? '停用' : '启用'

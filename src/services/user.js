@@ -1,5 +1,5 @@
-import { LOGIN, LOGOUT, USER_MENU, USER_INFO, USER, USERS, ROUTES } from '@/services/api'
 import { request, METHOD } from '@/utils/request'
+import { LOGIN, LOGOUT, USER_MENU, USER_INFO, USER, USERS, ROLE, USER_ROLE, ROUTES } from './api'
 
 const { GET, POST, PATCH, DELETE } = METHOD
 
@@ -66,6 +66,21 @@ export function deleteUser(parameter) {
   return request({
     url: `${USER}/${parameter}`,
     method: DELETE
+  })
+}
+
+export function assignUserRole(parameter) {
+  return request({
+    url: USER_ROLE,
+    method: POST,
+    data: parameter
+  })
+}
+
+export function getUserRoles(parameter) {
+  return request({
+    url: `${USER}/${parameter}${ROLE}`,
+    method: GET
   })
 }
 
