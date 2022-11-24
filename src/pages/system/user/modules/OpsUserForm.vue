@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="新增用户"
+    :title="model && model.id > 0 ? '编辑用户' : '新建用户'"
     :width="640"
     :visible="visible"
     :confirmLoading="loading"
