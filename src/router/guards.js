@@ -35,38 +35,37 @@ const loginGuard = (to, from, next, options) => {
   const token = storage.get(ACCESS_TOKEN)
   if (token) {
     if (to.path === LOGIN_PATH) {
-      next({ path: '/system/menu' })
+      next({ path: '/' })
       NProgress.done()
     } else {
       const menuData = store.getters['setting/menuData']
-      if (menuData.length === 0) {
-        store.dispatch('account/GetUser')
-          .then(res => {
-            getUserMenu().then(res => {
-              // VueRouter@3.5.0+ New API
-              resetRouter() // 重置路由 防止退出重新登录或者 token 过期后页面未刷新，导致的路由重复添加
-              loadRoutes(res.data)
-              // 请求带有 redirect 重定向时，登录自动重定向到该地址
-              const redirect = decodeURIComponent(from.query.redirect || to.path)
-              if (to.path === redirect) {
-                // set the replace: true so the navigation will not leave a history record
-                next({ ...to, replace: true })
-              } else {
-                // 跳转到目的路由
-                next({ path: redirect })
-              }
-            })
-          }).catch((err) => {
-            console.log(err)
-            notification.error({
-              message: '错误',
-              description: '请求用户信息失败，请重试'
-            })
-            // 失败时，获取用户信息失败时，调用登出，来清空历史保留信息
-            // store.dispatch('Logout').then(() => {
-            //   next({ path: LOGIN_PATH, query: { redirect: to.fullPath } })
-            // })
+      store.dispatch('account/GetUser')
+        .catch((err) => {
+          console.log(err)
+          notification.error({
+            message: '错误',
+            description: '请求用户信息失败，请重试'
           })
+          // 失败时，获取用户信息失败时，调用登出，来清空历史保留信息
+          // store.dispatch('Logout').then(() => {
+          //   next({ path: LOGIN_PATH, query: { redirect: to.fullPath } })
+          // })
+        })
+      if (menuData.length === 0) {
+        getUserMenu().then(res => {
+          // VueRouter@3.5.0+ New API
+          resetRouter() // 重置路由 防止退出重新登录或者 token 过期后页面未刷新，导致的路由重复添加
+          loadRoutes(res.data)
+          // 请求带有 redirect 重定向时，登录自动重定向到该地址
+          const redirect = decodeURIComponent(from.query.redirect || to.path)
+          if (to.path === redirect) {
+            // set the replace: true so the navigation will not leave a history record
+            next({ ...to, replace: true })
+          } else {
+            // 跳转到目的路由
+            next({ path: redirect })
+          }
+        })
       } else {
         next()
       }
