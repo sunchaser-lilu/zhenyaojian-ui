@@ -22,9 +22,9 @@
             @change="onMenuTypeChange"
             v-decorator="['type', { rules: [{ required: true, message: '请选择菜单类型' }] }]"
           >
-            <a-radio value="0" :disabled="catalogRadioDisabled"> 目录 </a-radio>
-            <a-radio value="1" :disabled="menuRadioDisabled"> 菜单 </a-radio>
-            <a-radio value="2"> 按钮 </a-radio>
+            <a-radio value="0" :disabled="catalogRadioDisabled">目录</a-radio>
+            <a-radio value="1" :disabled="menuRadioDisabled">菜单</a-radio>
+            <a-radio value="2">按钮</a-radio>
           </a-radio-group>
         </a-form-item>
         <a-form-item label="上级菜单">
@@ -62,6 +62,15 @@
           </span>
           <a-input v-decorator="['component']" :disabled="componentDisabled" />
         </a-form-item>
+        <a-form-item>
+          <span slot="label">
+            权限标识
+            <a-tooltip title="后端鉴权需要的权限标识">
+              <a-icon type="question-circle-o" />
+            </a-tooltip>
+          </span>
+          <a-input v-decorator="['permission']" />
+        </a-form-item>
         <a-form-item v-show="showSortValue">
           <span slot="label">
             显示排序
@@ -89,7 +98,7 @@ import { getPermissionTree } from '@/services/menu'
 import IconPicker from '@/components/IconPicker'
 
 // 表单字段
-const fields = ['id', 'name', 'type', 'parentId', 'path', 'component', 'sortValue', 'icon']
+const fields = ['id', 'name', 'type', 'parentId', 'path', 'component', 'permission', 'sortValue', 'icon']
 
 const ROOT_MENU = {
   id: 0,
@@ -163,13 +172,13 @@ export default {
     }
   },
   created() {
-    this.fetchPermissionTree()
     // 防止表单未注册
     fields.forEach((v) => this.form.getFieldDecorator(v))
     // 当 model 发生改变时，为表单设置值
     this.$watch('model', () => {
       this.model && this.form.setFieldsValue(pick(this.model, fields))
     })
+    this.fetchPermissionTree()
   },
   methods: {
     // 处理联动
@@ -189,9 +198,9 @@ export default {
         // 禁用目录和菜单 radio，默认选中按钮 radio
         this.catalogRadioDisabled = true
         this.menuRadioDisabled = true
-        this.form.getFieldDecorator('type', { initialValue: 2 })
+        this.form.setFieldsValue({ type: '2' })
         // 触发 radio 切换事件
-        this.onMenuTypeChange({ target: { value: 2 } })
+        this.onMenuTypeChange({ target: { value: '2' } })
       } else {
         // 其它情况添加无限制
         this.initFormStatus()
@@ -204,17 +213,18 @@ export default {
       this.catalogRadioDisabled = false
       this.menuRadioDisabled = false
       // 触发 radio 切换事件
-      this.onMenuTypeChange({ target: { value: record.type } })
+      const t = record.type
+      this.form.setFieldsValue({ type: t })
+      this.onMenuTypeChange({ target: { value: t } })
     },
     initFormStatus() {
       this.catalogRadioDisabled = false
       this.menuRadioDisabled = false
-      this.form.getFieldDecorator('type', { initialValue: undefined })
       this.showPath = true
       this.showComponet = true
       this.showSortValue = true
       this.componentDisabled = false
-      this.form.getFieldDecorator('component', { initialValue: '' })
+      this.form.setFieldsValue({ component: '', type: '' })
     },
     onParentMenuSelect(selectedKeys, info) {
       console.log('selected', selectedKeys, info)
@@ -228,26 +238,24 @@ export default {
     },
     onMenuTypeChange(event) {
       const value = event.target.value
-      if (value === 0) {
+      if (value === '0') {
         // 切换到目录
         this.showPath = true
         this.showComponet = true
         this.showSortValue = true
         // 禁用 component，值固定为 BlankView
         this.componentDisabled = true
-        this.form.getFieldDecorator('component', { initialValue: 'BlankView' })
-        // this.catalogRadioDisabled = false
-        // this.menuRadioDisabled = false
+        this.form.setFieldsValue({ component: 'BlankView' })
         this.filter = FILTER_CATALOG
-      } else if (value === 1) {
+      } else if (value === '1') {
         // 切换到菜单
         this.showPath = true
         this.showComponet = true
         this.showSortValue = true
         this.componentDisabled = false
-        this.form.getFieldDecorator('component', { initialValue: '' })
+        this.form.setFieldsValue({ component: '' })
         this.filter = FILTER_CATALOG
-      } else if (value === 2) {
+      } else if (value === '2') {
         // 切换到按钮
         this.showPath = false
         this.showComponet = false
