@@ -11,7 +11,7 @@
             </a-col>
             <a-col :md="8" :sm="24">
               <span class="table-page-search-submitButtons">
-                <a-button type="primary" @click="fetchPermissionList()">查询</a-button>
+                <a-button type="primary" @click="fetchPermissionList()">搜索</a-button>
                 <a-button
                   style="margin-left: 8px"
                   @click="
@@ -46,7 +46,7 @@
         :scroll="{ x: 'calc(700px + 50%)' }"
       >
         <span slot="name" slot-scope="text, record">
-          <a-icon :type="record.icon" />&nbsp;
+          <a-icon v-if="record.icon" :type="record.icon" />&nbsp;
           {{ text }}
         </span>
         <span slot="status" slot-scope="text">
@@ -54,7 +54,9 @@
         </span>
         <span slot="action" slot-scope="text, record">
           <template>
-            <a style="margin-right: 8px" @click="handleAdd(record)"><a-icon type="plus" />新建</a>
+            <a v-if="record.type !== 2 && record.type !== '2'" style="margin-right: 8px" @click="handleAdd(record)">
+              <a-icon type="plus" />新建
+            </a>
             <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a-popconfirm
               :title="'确认' + disableOrEnable(record.status) + '该菜单吗?'"
@@ -104,11 +106,15 @@ const columns = [
   {
     title: '菜单名称',
     dataIndex: 'name',
+    fixed: 'left',
+    width: 180,
+    ellipsis: true,
     scopedSlots: { customRender: 'name' }
   },
   {
     title: '路由地址',
     dataIndex: 'path',
+    width: 160,
     customRender: (text) => {
       return text || '—'
     },
@@ -117,17 +123,29 @@ const columns = [
   {
     title: '前端组件',
     dataIndex: 'component',
+    width: 180,
     customRender: (text) => {
       return text || '—'
     }
   },
   {
+    title: '权限标识',
+    dataIndex: 'permission',
+    width: 220,
+    customRender: (text) => {
+      return text || '-'
+    },
+    ellipsis: true
+  },
+  {
     title: '排序',
-    dataIndex: 'sortValue'
+    dataIndex: 'sortValue',
+    width: 100
   },
   {
     title: '状态',
     dataIndex: 'status',
+    width: 100,
     scopedSlots: { customRender: 'status' }
   },
   {
@@ -139,7 +157,7 @@ const columns = [
     title: '操作',
     dataIndex: 'action',
     fixed: 'right',
-    width: 233,
+    width: 250,
     scopedSlots: { customRender: 'action' }
   }
 ]
@@ -211,6 +229,8 @@ export default {
     },
     handleEdit(record) {
       this.visible = true
+      // 将 type 从 number 类型转化为 string 类型
+      record.type = record.type.toString()
       this.mdl = { ...record }
       this.$refs.createModal.handleEditLinkage(record)
     },
