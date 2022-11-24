@@ -36,14 +36,16 @@ export default {
   },
   methods: {
     logout() {
-      logout()
-      storage.remove(process.env.VUE_APP_USER_KEY)
-      storage.remove(process.env.VUE_APP_ROLES_KEY)
-      storage.remove(ACCESS_TOKEN)
-      this.setMenuData([])
-      setTimeout(() => {
-        this.$router.push(LOGIN_PATH)
-      }, 1000)
+      logout().then(() => {
+        storage.remove(process.env.VUE_APP_ROUTES_KEY)
+        storage.remove(process.env.VUE_APP_USER_KEY)
+        storage.remove(process.env.VUE_APP_ROLES_KEY)
+        storage.remove(ACCESS_TOKEN)
+        this.setMenuData([])
+        setTimeout(() => {
+          this.$router.push(LOGIN_PATH)
+        }, 1000)
+      })
     },
     ...mapMutations('setting', ['setMenuData'])
   }
