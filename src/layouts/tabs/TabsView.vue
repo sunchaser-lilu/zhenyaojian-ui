@@ -284,6 +284,11 @@ export default {
       const page = this.pageList.find((item) => item.path === route.path)
       page.unclose = route.meta && route.meta.page && route.meta.page.closable === false
       if (!page._init_) {
+        const tabContentRef = this.$refs.tabContent
+        if (!tabContentRef) {
+          page._init_ = true
+          return
+        }
         const vnode = this.$refs.tabContent.$vnode
         page.cachedKey = vnode.key + vnode.componentOptions.Ctor.cid
         page._init_ = true
