@@ -26,6 +26,7 @@
             :replace-fields="replaceFields"
             :tree-data="treeData"
             @check="onCheck"
+            :defaultExpandAll="true"
           />
         </a-form-item>
       </a-form>
@@ -35,7 +36,7 @@
 
 <script>
 import pick from 'lodash.pick'
-import { getPermissionTree } from '@/services/menu'
+import { getPermissionList } from '@/services/menu'
 import { getRolePermissions } from '@/services/role'
 
 // 表单字段
@@ -95,7 +96,7 @@ export default {
   },
   methods: {
     fetchTreeData() {
-      getPermissionTree({ filter: 'FILTER_NONE' }).then((res) => {
+      getPermissionList().then((res) => {
         this.treeData = res.data
       })
     },

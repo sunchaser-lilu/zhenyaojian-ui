@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    :title="model && model.id > 0 ? '修改角色' : '新建角色'"
+    :title="model && model.id > 0 ? '编辑角色' : '新建角色'"
     :width="400"
     :visible="visible"
     :confirmLoading="loading"
