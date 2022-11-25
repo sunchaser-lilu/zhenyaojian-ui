@@ -41,9 +41,10 @@ const errorHandler = (error) => {
         description: data.msg
       })
     } else if (status === 401 && data.code !== '20002') {
+      console.log(data.msg)
       notification.error({
         message: 'Unauthorized',
-        description: 'Authorization verification failed'
+        description: data.msg || 'Authorization verification failed'
       })
       if (token) {
         request({

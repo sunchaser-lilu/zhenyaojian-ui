@@ -3,7 +3,7 @@ import { ACCESS_TOKEN } from '@/utils/request'
 import { loginIgnore, resetRouter, LOGIN_PATH } from '@/router/index'
 import NProgress from 'nprogress'
 import storage from 'store'
-import { getUserMenu } from '@/services/user'
+import { getUserRouter } from '@/services/user'
 import { loadRoutes } from '@/utils/routerUtil'
 
 NProgress.configure({ showSpinner: false })
@@ -40,6 +40,26 @@ const loginGuard = (to, from, next, options) => {
     } else {
       const menuData = store.getters['setting/menuData']
       store.dispatch('account/GetUser')
+        .then(() => {
+          if (menuData.length === 0) {
+            getUserRouter().then(res => {
+              // VueRouter@3.5.0+ New API
+              resetRouter() // 重置路由 防止退出重新登录或者 token 过期后页面未刷新，导致的路由重复添加
+              loadRoutes(res.data)
+              // 请求带有 redirect 重定向时，登录自动重定向到该地址
+              const redirect = decodeURIComponent(from.query.redirect || to.path)
+              if (to.path === redirect) {
+                // set the replace: true so the navigation will not leave a history record
+                next({ ...to, replace: true })
+              } else {
+                // 跳转到目的路由
+                next({ path: redirect })
+              }
+            })
+          } else {
+            next()
+          }
+        })
         .catch((err) => {
           console.log(err)
           notification.error({
@@ -51,24 +71,6 @@ const loginGuard = (to, from, next, options) => {
           //   next({ path: LOGIN_PATH, query: { redirect: to.fullPath } })
           // })
         })
-      if (menuData.length === 0) {
-        getUserMenu().then(res => {
-          // VueRouter@3.5.0+ New API
-          resetRouter() // 重置路由 防止退出重新登录或者 token 过期后页面未刷新，导致的路由重复添加
-          loadRoutes(res.data)
-          // 请求带有 redirect 重定向时，登录自动重定向到该地址
-          const redirect = decodeURIComponent(from.query.redirect || to.path)
-          if (to.path === redirect) {
-            // set the replace: true so the navigation will not leave a history record
-            next({ ...to, replace: true })
-          } else {
-            // 跳转到目的路由
-            next({ path: redirect })
-          }
-        })
-      } else {
-        next()
-      }
     }
   } else {
     if (loginIgnore.includes(to)) {

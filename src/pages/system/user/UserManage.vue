@@ -54,7 +54,7 @@
           <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
         </span>
         <span slot="action" slot-scope="text, record">
-          <template v-if="record.id === 1"><a-tag color="red">无法操作超级管理员账户</a-tag></template>
+          <template v-if="record.id === 1"><a-tag color="red">超级管理员账户</a-tag></template>
           <template v-if="record.id !== 1">
             <a style="margin-right: 8px" @click="handleEdit(record)"><a-icon type="edit" />编辑</a>
             <a-popconfirm
@@ -86,7 +86,7 @@
                   <a @click="handleAssign(record)"><a-icon type="snippets" /> 分配角色</a>
                 </a-menu-item>
                 <a-menu-item>
-                  <a @click="handleAssign(record)"><a-icon type="snippets" /> 重置密码</a>
+                  <a @click="handleResetPassword(record)"><a-icon type="snippets" /> 重置密码</a>
                 </a-menu-item>
               </a-menu>
             </a-dropdown>
@@ -251,6 +251,26 @@ export default {
     handleAssign(record) {
       this.assignVisible = true
       this.mdl = { ...record }
+    },
+    handleResetPassword(record) {
+      this.$confirm({
+        title: '信息',
+        content: `您确定要重置账户 [${record.account}] 的密码吗？`,
+        onOk() {
+          return new Promise((resolve, reject) => {
+            updateUser({ id: record.id, userOpsType: 'RESET_PASSWORD' })
+              .then(() => {
+                setTimeout(() => {
+                  resolve()
+                }, 1000)
+              })
+              .catch((err) => reject(err))
+          }).catch(() => {
+            console.log('Oops errors!')
+          })
+        },
+        onCancel() {}
+      })
     },
     handleOk() {
       const opsUserModal = this.$refs.opsUserModal

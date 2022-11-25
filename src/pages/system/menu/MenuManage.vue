@@ -100,7 +100,7 @@ import PageLayout from '@/layouts/PageLayout'
 import { createPermission, updatePermission, deletePermission, getPermissionList } from '@/services/menu'
 import CreateForm from './modules/CreateForm'
 import { loadRoutes } from '@/utils/routerUtil'
-import { getUserMenu } from '@/services/user'
+import { getUserRouter } from '@/services/user'
 
 const columns = [
   {
@@ -275,7 +275,7 @@ export default {
       // 刷新上级菜单树形选择框
       createModal.fetchPermissionTree()
       // 刷新路由和左侧导航
-      getUserMenu().then((res) => {
+      getUserRouter().then((res) => {
         loadRoutes(res.data)
       })
     },
@@ -292,7 +292,7 @@ export default {
         // 刷新上级菜单树形选择框
         this.$refs.createModal.fetchPermissionTree()
         // 刷新路由和左侧导航
-        getUserMenu().then((res) => {
+        getUserRouter().then((res) => {
           loadRoutes(res.data)
         })
       })

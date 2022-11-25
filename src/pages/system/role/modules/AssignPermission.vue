@@ -21,6 +21,7 @@
           <a-tree
             v-decorator="['permissionIds']"
             checkable
+            checkStrictly
             :selectable="false"
             v-model="checkedKeys"
             :replace-fields="replaceFields"
@@ -129,8 +130,9 @@ export default {
     },
     onCheck(checkedKeys) {
       console.log('onCheck', checkedKeys)
-      this.checkedKeys = checkedKeys
-      this.form.setFieldsValue({ permissionIds: checkedKeys })
+      const checked = checkedKeys.checked
+      this.checkedKeys = checked
+      this.form.setFieldsValue({ permissionIds: checked })
     }
   }
 }

@@ -4,7 +4,7 @@
 module.exports = {
   LOGIN: '/auth/login',
   LOGOUT: '/auth/logout',
-  USER_MENU: '/user/menu',
+  USER_ROUTER: '/user/router',
   USER_INFO: '/user/info',
   USER: '/user',
   USERS: '/users',

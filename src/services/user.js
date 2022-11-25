@@ -1,5 +1,5 @@
 import { request, METHOD } from '@/utils/request'
-import { LOGIN, LOGOUT, USER_MENU, USER_INFO, USER, USERS, ROLE, USER_ROLE, ROUTES } from './api'
+import { LOGIN, LOGOUT, USER_ROUTER, USER_INFO, USER, USERS, ROLE, USER_ROLE, ROUTES } from './api'
 
 const { GET, POST, PATCH, DELETE } = METHOD
 
@@ -17,9 +17,9 @@ export function login(parameter) {
   })
 }
 
-export function getUserMenu() {
+export function getUserRouter() {
   return request({
-    url: USER_MENU,
+    url: USER_ROUTER,
     method: GET
   })
 }
