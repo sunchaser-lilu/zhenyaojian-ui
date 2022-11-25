@@ -12,7 +12,9 @@ const routerComponents = {
   Login: () => import('@/pages/login'),
   MenuManage: () => import('@/pages/system/menu/MenuManage'),
   UserManage: () => import('@/pages/system/user/UserManage'),
-  RoleManage: () => import('@/pages/system/role/RoleManage')
+  RoleManage: () => import('@/pages/system/role/RoleManage'),
+
+  SpringBootAdmin: () => import('@/pages/observability/sba/SpringBootAdmin')
 }
 
 export default routerComponents
