@@ -57,7 +57,7 @@
             <a-radio value="未知">未知</a-radio>
           </a-radio-group>
         </a-form-item>
-        <a-form-item label="所属部门">
+        <!-- <a-form-item label="所属部门">
           <a-tree-select
             show-search
             treeNodeFilterProp="title"
@@ -68,7 +68,7 @@
             v-decorator="['departmentId']"
           >
           </a-tree-select>
-        </a-form-item>
+        </a-form-item> -->
       </a-form>
     </a-spin>
   </a-modal>
@@ -78,7 +78,7 @@
 import pick from 'lodash.pick'
 
 // 表单字段
-const fields = ['id', 'account', 'password', 'nickName', 'phoneNumber', 'email', 'sex', 'departmentId']
+const fields = ['id', 'account', 'password', 'nickName', 'phoneNumber', 'email', 'sex']
 
 export default {
   props: {
@@ -126,9 +126,9 @@ export default {
     })
   },
   methods: {
-    onDepartmentSelect(selectedKeys, info) {
-      console.log('selected', selectedKeys, info)
-    }
+    // onDepartmentSelect(selectedKeys, info) {
+    //   console.log('selected', selectedKeys, info)
+    // }
   }
 }
 </script>
