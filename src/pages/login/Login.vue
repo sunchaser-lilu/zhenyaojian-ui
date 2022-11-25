@@ -104,7 +104,7 @@
           <a-icon class="icon" type="alipay-circle" />
           <a-icon class="icon" type="taobao-circle" />
           <a-icon class="icon" type="weibo-circle" />
-          <router-link style="float: right" to="/dashboard/workplace"> 注册账户 </router-link>
+          <router-link style="float: right" to="/register"> 注册账户 </router-link>
         </div>
       </a-form>
     </div>
