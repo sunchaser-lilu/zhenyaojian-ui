@@ -14,6 +14,8 @@ const routerComponents = {
   UserManage: () => import('@/pages/system/user/UserManage'),
   RoleManage: () => import('@/pages/system/role/RoleManage'),
 
+  OperateLog: () => import('@/pages/observability/logs/operate/OperateLog'),
+  LoginLog: () => import('@/pages/observability/logs/login/LoginLog'),
   SpringBootAdmin: () => import('@/pages/observability/sba/SpringBootAdmin')
 }
 
