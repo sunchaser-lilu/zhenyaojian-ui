@@ -8,6 +8,7 @@
         :columns="columns"
         :data-source="data"
         :pagination="pagination"
+        @change="tableChange"
         bordered
         :loading="loading"
         :scroll="{ x: 'calc(700px + 50%)' }"
@@ -28,6 +29,7 @@
 <script>
 import PageLayout from '@/layouts/PageLayout'
 import { getPageLogList } from '@/services/logs'
+import { deviceTypeMap } from '@/utils/util'
 
 const columns = [
   {
@@ -36,18 +38,20 @@ const columns = [
     width: 70
   },
   {
-    title: '请求 IP',
+    title: '登录 IP',
     dataIndex: 'requestIp',
-    width: 100
+    width: 150
   },
   {
     title: '设备类型',
     dataIndex: 'deviceType',
-    scopedSlots: { customRender: 'deviceType' },
+    customRender: (text) => {
+      return deviceTypeMap[text]
+    },
     width: 100
   },
   {
-    title: '浏览器名称',
+    title: '浏览器',
     dataIndex: 'browser',
     width: 130
   },
@@ -62,31 +66,23 @@ const columns = [
     width: 150
   },
   {
-    title: '操作人',
+    title: '登录账号',
     dataIndex: 'userAccount',
     width: 100
   },
   {
-    title: '操作描述',
-    dataIndex: 'description',
-    customRender: (text) => {
-      return text || '—'
-    },
-    width: 200
-  },
-  {
-    title: '操作状态',
+    title: '登录状态',
     dataIndex: 'status',
     scopedSlots: { customRender: 'status' },
     width: 100
   },
   {
-    title: '操作开始时间',
+    title: '登录时间',
     dataIndex: 'startTime',
     width: 180
   },
   {
-    title: '操作耗时',
+    title: '登录耗时',
     dataIndex: 'rt',
     customRender: (text) => {
       return text + ' ms'
