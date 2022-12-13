@@ -39,7 +39,8 @@
         rowKey="id"
         :columns="columns"
         :data-source="data"
-        :pagination="true"
+        :pagination="pagination"
+        @change="tableChange"
         bordered
         :loading="loading"
       >
@@ -156,6 +157,20 @@ export default {
       visible: false,
       confirmLoading: false,
       mdl: null,
+      pagination: {
+        // 总记录数
+        total: 0,
+        current: 1,
+        pageSize: 10,
+        // 默认每页记录数
+        defaultPageSize: 10,
+        showTotal: (total) => `共 ${total} 条记录`,
+        // 只有一页时是否隐藏分页器
+        hideOnSinglePage: false,
+        showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '50'],
+        onShowSizeChange: (current, pageSize) => (this.pageSize = pageSize)
+      },
       // 查询参数
       queryParam: {},
       // 表格数据
@@ -179,13 +194,23 @@ export default {
   methods: {
     fetchPageRoleList() {
       this.loading = true
+      const queryParam = {
+        pageNo: this.pagination.current,
+        pageSize: this.pagination.pageSize
+      }
+      Object.assign(this.queryParam, queryParam)
       getPageRoleList(this.queryParam)
         .then((res) => {
           this.data = res.data
+          this.pagination.total = res.count
         })
         .finally(() => {
           this.loading = false
         })
+    },
+    tableChange(pagination, filters, sorter) {
+      this.pagination = pagination
+      this.fetchPageRoleList()
     },
     handleAdd() {
       this.visible = true

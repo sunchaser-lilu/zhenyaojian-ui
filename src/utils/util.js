@@ -1,5 +1,15 @@
 import enquireJs from 'enquire.js'
 
+export const deviceTypeMap = {
+  Computer: 'PC 端',
+  Mobile: '移动端',
+  Tablet: '平板电脑',
+  'Game console': '游戏机',
+  'Digital media receiver': '数字媒体接收器',
+  'Wearable computer': '微型设备',
+  Unknown: '未知设备'
+}
+
 export function isDef(v) {
   return v !== undefined && v !== null
 }

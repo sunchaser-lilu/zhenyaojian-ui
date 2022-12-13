@@ -29,6 +29,7 @@
 <script>
 import PageLayout from '@/layouts/PageLayout'
 import { getPageLogList } from '@/services/logs'
+import { deviceTypeMap } from '@/utils/util'
 
 const columns = [
   {
@@ -39,16 +40,18 @@ const columns = [
   {
     title: '请求 IP',
     dataIndex: 'requestIp',
-    width: 100
+    width: 150
   },
   {
     title: '设备类型',
     dataIndex: 'deviceType',
-    scopedSlots: { customRender: 'deviceType' },
+    customRender: (text) => {
+      return deviceTypeMap[text]
+    },
     width: 100
   },
   {
-    title: '浏览器名称',
+    title: '浏览器',
     dataIndex: 'browser',
     width: 130
   },
