@@ -1,5 +1,5 @@
 import { request, METHOD } from '@/utils/request'
-import { LOGIN, LOGOUT, USER_ROUTER, USER_INFO, USER, USERS, ROLE, USER_ROLE, ROUTES } from './api'
+import { LOGIN, LOGOUT, USER_ROUTER, USER_INFO, USER, USERS, ROLE, USER_ROLE } from './api'
 
 const { GET, POST, PATCH, DELETE } = METHOD
 
@@ -82,8 +82,4 @@ export function getUserRoles(parameter) {
     url: `${USER}/${parameter}${ROLE}`,
     method: GET
   })
-}
-
-export async function getRoutesConfig() {
-  return request(ROUTES, METHOD.GET)
 }
