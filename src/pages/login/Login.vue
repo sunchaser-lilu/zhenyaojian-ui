@@ -5,7 +5,7 @@
         <img alt="logo" class="logo" src="@/assets/img/logo.png" />
         <span class="title">{{ systemName }}</span>
       </div>
-      <div class="desc">Ant Design 是西湖区最具影响力的 Web 设计规范</div>
+      <p class="desc"></p>
     </div>
     <div class="login">
       <a-form @submit="onSubmit" :form="form">
@@ -24,7 +24,7 @@
               <a-input
                 autocomplete="autocomplete"
                 size="large"
-                placeholder="admin"
+                placeholder="llnancy"
                 v-decorator="['account', { rules: [{ required: true, message: '请输入账户名', whitespace: true }] }]"
               >
                 <a-icon slot="prefix" type="user" />
@@ -33,7 +33,7 @@
             <a-form-item>
               <a-input
                 size="large"
-                placeholder="888888"
+                placeholder="123456"
                 autocomplete="autocomplete"
                 type="password"
                 v-decorator="['password', { rules: [{ required: true, message: '请输入密码', whitespace: true }] }]"
@@ -42,7 +42,7 @@
               </a-input>
             </a-form-item>
           </a-tab-pane>
-          <a-tab-pane tab="手机号登录" key="2">
+          <!-- <a-tab-pane tab="手机号登录" key="2">
             <a-form-item>
               <a-input size="large" placeholder="mobile number">
                 <a-icon slot="prefix" type="mobile" />
@@ -60,12 +60,12 @@
                 </a-col>
               </a-row>
             </a-form-item>
-          </a-tab-pane>
+          </a-tab-pane> -->
         </a-tabs>
-        <div>
+        <!-- <div>
           <a-checkbox :checked="true">自动登录</a-checkbox>
           <a style="float: right">忘记密码</a>
-        </div>
+        </div> -->
         <a-form-item>
           <a-button
             :loading="logging"
@@ -77,13 +77,13 @@
             登录
           </a-button>
         </a-form-item>
-        <div>
+        <!-- <div>
           其他登录方式
           <a-icon class="icon" type="alipay-circle" />
           <a-icon class="icon" type="taobao-circle" />
           <a-icon class="icon" type="weibo-circle" />
           <router-link style="float: right" to="/register">注册账户</router-link>
-        </div>
+        </div> -->
       </a-form>
     </div>
   </common-layout>
@@ -172,7 +172,6 @@ export default {
       font-size: 14px;
       color: @text-color-second;
       margin-top: 12px;
-      margin-bottom: 40px;
     }
   }
   .login {
