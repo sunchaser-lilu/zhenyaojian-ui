@@ -1,5 +1,5 @@
 <template>
-  <a-drawer width="580" placement="right" :closable="false" :visible="visible" @close="onClose">
+  <a-drawer width="600" placement="right" :closable="false" :visible="visible" @close="onClose">
     <a-descriptions :column="1" :title="title">
       <a-descriptions-item label="请求 IP"> {{ this.data.requestIp }} </a-descriptions-item>
       <a-descriptions-item label="设备类型">

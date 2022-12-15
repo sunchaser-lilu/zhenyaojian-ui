@@ -1,10 +1,12 @@
 module.exports = {
   messages: {
     CN: {
-      home: { name: '首页' }
+      home: { name: '首页' },
+      login: { name: '登录' }
     },
     US: {
-      home: { name: 'home' }
+      home: { name: 'home' },
+      login: { name: 'Login' }
     },
     HK: {
       home: { name: '首頁' },

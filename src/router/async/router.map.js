@@ -1,3 +1,5 @@
+export const LOGIN_PATH = '/user/login'
+
 // 视图组件
 const view = {
   tabs: () => import('@/layouts/tabs'),
@@ -9,13 +11,9 @@ const view = {
 const routerMap = {
   login: {
     authority: '*',
-    path: '/user/login',
+    path: LOGIN_PATH,
+    name: '登录页',
     component: () => import('@/pages/login')
-  },
-  demo: {
-    name: '演示页',
-    path: '/demo',
-    component: () => import('@/pages/demo')
   },
   exp403: {
     authority: '*',

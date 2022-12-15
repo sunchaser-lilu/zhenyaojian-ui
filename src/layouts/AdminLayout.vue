@@ -44,6 +44,7 @@
         <div style="position: relative">
           <slot></slot>
         </div>
+        <index v-if="this.$route.path === '/'" />
       </a-layout-content>
       <a-layout-footer style="padding: 0px">
         <page-footer :link-list="footerLinks" :copyright="copyright" />
@@ -59,12 +60,13 @@ import Drawer from '../components/tool/Drawer'
 import SideMenu from '../components/menu/SideMenu'
 import Setting from '../components/setting/Setting'
 import { mapState, mapMutations, mapGetters } from 'vuex'
+import Index from '../pages/index/Index'
 
 // const minHeight = window.innerHeight - 64 - 122
 
 export default {
   name: 'AdminLayout',
-  components: { Setting, SideMenu, Drawer, PageFooter, AdminHeader },
+  components: { Setting, SideMenu, Drawer, PageFooter, AdminHeader, Index },
   data() {
     return {
       minHeight: window.innerHeight - 64 - 122,

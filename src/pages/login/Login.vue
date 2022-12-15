@@ -25,18 +25,7 @@
                 autocomplete="autocomplete"
                 size="large"
                 placeholder="admin"
-                v-decorator="[
-                  'account',
-                  {
-                    rules: [
-                      {
-                        required: true,
-                        message: '请输入账户名',
-                        whitespace: true
-                      }
-                    ]
-                  }
-                ]"
+                v-decorator="['account', { rules: [{ required: true, message: '请输入账户名', whitespace: true }] }]"
               >
                 <a-icon slot="prefix" type="user" />
               </a-input>
@@ -47,18 +36,7 @@
                 placeholder="888888"
                 autocomplete="autocomplete"
                 type="password"
-                v-decorator="[
-                  'password',
-                  {
-                    rules: [
-                      {
-                        required: true,
-                        message: '请输入密码',
-                        whitespace: true
-                      }
-                    ]
-                  }
-                ]"
+                v-decorator="['password', { rules: [{ required: true, message: '请输入密码', whitespace: true }] }]"
               >
                 <a-icon slot="prefix" type="lock" />
               </a-input>
@@ -78,7 +56,7 @@
                   </a-input>
                 </a-col>
                 <a-col :span="8" style="padding-left: 4px">
-                  <a-button style="width: 100%" class="captcha-button" size="large"> 获取验证码 </a-button>
+                  <a-button style="width: 100%" class="captcha-button" size="large">获取验证码</a-button>
                 </a-col>
               </a-row>
             </a-form-item>
@@ -104,7 +82,7 @@
           <a-icon class="icon" type="alipay-circle" />
           <a-icon class="icon" type="taobao-circle" />
           <a-icon class="icon" type="weibo-circle" />
-          <router-link style="float: right" to="/register"> 注册账户 </router-link>
+          <router-link style="float: right" to="/register">注册账户</router-link>
         </div>
       </a-form>
     </div>
@@ -114,7 +92,6 @@
 <script>
 import CommonLayout from '@/layouts/CommonLayout'
 import { login } from '@/services/user'
-// import { loadRoutes } from '@/utils/routerUtil'
 import { mapMutations } from 'vuex'
 import storage from 'store'
 import { ACCESS_TOKEN } from '@/utils/request'
@@ -134,7 +111,6 @@ export default {
       return this.$store.state.setting.systemName
     }
   },
-  created() {},
   methods: {
     ...mapMutations('account', ['setUser', 'setPermissions', 'setRoles']),
     onSubmit(e) {
@@ -157,17 +133,6 @@ export default {
       if (res.code >= 0) {
         storage.set(ACCESS_TOKEN, 'Bearer ' + res.data, new Date().getTime() + 7 * 24 * 60 * 60 * 1000)
         this.$router.push({ path: '/' })
-        // const { user, permissions, roles } = loginRes.data
-        // this.setUser(user)
-        // this.setPermissions(permissions)
-        // this.setRoles(roles)
-        // // 获取路由配置
-        // getRoutesConfig().then((result) => {
-        //   const routesConfig = result.data.data
-        //   loadRoutes(routesConfig)
-        //   this.$router.push('/demo')
-        //   this.$message.success(loginRes.message, 3)
-        // })
       } else {
         this.error = res.msg
       }

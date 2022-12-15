@@ -1,12 +1,12 @@
 import TabsView from '@/layouts/tabs/TabsView'
 import BlankView from '@/layouts/BlankView'
-import PageView from '@/layouts/PageView'
+// import PageView from '@/layouts/PageView'
 
 // 路由配置
 const options = {
   routes: [
     {
-      path: '/user/login',
+      path: '/login',
       name: '登录页',
       component: () => import('@/pages/login')
     },
@@ -24,46 +24,8 @@ const options = {
       path: '/',
       name: '首页',
       component: TabsView,
-      redirect: '/demo',
+      redirect: '/login',
       children: [
-        {
-          path: 'demo',
-          name: '演示页',
-          meta: {
-            icon: 'file-ppt'
-          },
-          component: () => import('@/pages/demo')
-        },
-        {
-          path: 'parent1',
-          name: '父级路由1',
-          meta: {
-            icon: 'dashboard'
-          },
-          component: BlankView,
-          children: [
-            {
-              path: 'demo1',
-              name: '演示页面1',
-              component: () => import('@/pages/demo')
-            }
-          ]
-        },
-        {
-          path: 'parent2',
-          name: '父级路由2',
-          meta: {
-            icon: 'form'
-          },
-          component: PageView,
-          children: [
-            {
-              path: 'demo2',
-              name: '演示页面2',
-              component: () => import('@/pages/demo')
-            }
-          ]
-        },
         {
           path: 'exception',
           name: '异常页',
@@ -88,18 +50,6 @@ const options = {
               component: () => import('@/pages/exception/500')
             }
           ]
-        },
-        {
-          name: '验权页面',
-          path: 'auth/demo',
-          meta: {
-            icon: 'file-ppt',
-            authority: {
-              permission: 'form',
-              role: 'manager'
-            },
-            component: () => import('@/pages/demo')
-          }
         }
       ]
     }

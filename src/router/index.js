@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import { formatRoutes } from '@/utils/routerUtil'
 import store from '@/store'
+import { LOGIN_PATH as lp } from './async/router.map'
 
 // https://blog.csdn.net/weixin_43242112/article/details/107595460
 // hack router push callback
@@ -13,7 +14,7 @@ Router.prototype.push = function push(location, onResolve, onReject) {
 
 Vue.use(Router)
 
-export const LOGIN_PATH = '/user/login'
+export const LOGIN_PATH = lp
 
 // 不需要登录拦截的路由配置
 export const loginIgnore = {
@@ -39,6 +40,7 @@ const initRouter = () => {
   formatRoutes(options.routes)
   return new Router({
     mode: 'history',
+    base: process.env.VUE_APP_PUBLIC_PATH,
     ...options
   })
 }
