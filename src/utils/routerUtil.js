@@ -147,7 +147,7 @@ function loadRoutes(routesConfig) {
   mergeI18nFromRoutes(i18n, routes)
   // 初始化Admin后台菜单数据
   const rootRoute = routes.find(item => item.path === '/')
-  const menuRoutes = rootRoute && (rootRoute.children || [rootRoute])
+  const menuRoutes = rootRoute && rootRoute.children
   if (menuRoutes) {
     store.commit('setting/setMenuData', menuRoutes)
   }

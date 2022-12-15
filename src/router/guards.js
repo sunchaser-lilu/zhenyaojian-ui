@@ -38,10 +38,9 @@ const loginGuard = (to, from, next, options) => {
       next({ path: '/' })
       NProgress.done()
     } else {
-      const menuData = store.getters['setting/menuData']
       store.dispatch('account/GetUser')
         .then(() => {
-          if (menuData.length === 0) {
+          if (store.getters['setting/menuData'].length === 0) {
             getUserRouter().then(res => {
               // VueRouter@3.5.0+ New API
               resetRouter() // 重置路由 防止退出重新登录或者 token 过期后页面未刷新，导致的路由重复添加

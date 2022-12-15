@@ -24,12 +24,14 @@
         </span>
       </a-table>
     </a-card>
+    <log-detail :visible="visible" :data="logDetail" title="登录日志详情" type="登录" />
   </page-layout>
 </template>
 <script>
 import PageLayout from '@/layouts/PageLayout'
 import { getPageLogList } from '@/services/logs'
 import { deviceTypeMap } from '@/utils/util'
+import LogDetail from '../LogDetail.vue'
 
 const columns = [
   {
@@ -112,7 +114,8 @@ const statusMap = {
 export default {
   name: 'LoginLog',
   components: {
-    PageLayout
+    PageLayout,
+    LogDetail
   },
   data() {
     this.columns = columns
@@ -136,7 +139,11 @@ export default {
         onShowSizeChange: (current, pageSize) => (this.pageSize = pageSize)
       },
       // 查询参数
-      queryParam: {}
+      queryParam: {},
+      // 详情页抽屉展示
+      visible: false,
+      // 详情页数据
+      logDetail: {}
     }
   },
   filters: {
@@ -171,8 +178,9 @@ export default {
       this.pagination = pagination
       this.fetchPageLogList()
     },
-    showDetail() {
-      console.log('showDetail')
+    showDetail(record) {
+      this.logDetail = record
+      this.visible = true
     }
   }
 }

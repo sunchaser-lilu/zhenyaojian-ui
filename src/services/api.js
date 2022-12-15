@@ -19,7 +19,5 @@ module.exports = {
   USER_ROLE: '/user/role',
   ROLE_PERMISSION: '/role/permission',
 
-  LOGS: '/logs',
-
-  ROUTES: '/routes'
+  LOGS: '/logs'
 }
