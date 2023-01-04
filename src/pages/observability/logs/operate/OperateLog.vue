@@ -60,7 +60,7 @@ const columns = [
   {
     title: '操作系统',
     dataIndex: 'os',
-    width: 100
+    width: 130
   },
   {
     title: '地理位置',
