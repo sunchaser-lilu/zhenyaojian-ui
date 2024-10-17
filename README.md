@@ -49,4 +49,4 @@
 
 | 支付宝                                        | 微信                                            |
 |--------------------------------------------|-----------------------------------------------|
-| ![支付宝](https://images.lilu.org.cn/website/base/alipay.png) | ![微信](https://images.lilu.org.cn/website/base/wechat-pay.png) |
+| ![支付宝](https://cdn.lilu.org.cn/website/base/alipay.png) | ![微信](https://cdn.lilu.org.cn/website/base/wechat-pay.png) |
